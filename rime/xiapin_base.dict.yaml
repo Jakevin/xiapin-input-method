@@ -1,0 +1,32 @@
+# Rime dictionary
+# encoding: utf-8
+# Generated from data/demo_dictionary.json. Do not add proprietary tables here.
+---
+name: xiapin_base
+version: "0.1.0"
+sort: by_weight
+...
+你	ni	9990
+你	m:person	9990
+你	ni+person	9990
+尼	ni	9970
+尼	m:sit	9970
+尼	ni+sit	9970
+好	hao	9990
+好	m:kind	9990
+好	hao+kind	9990
+口	kou	9995
+口	m:box	9995
+口	kou+box	9995
+日	ri	9995
+日	m:sun	9995
+日	ri+sun	9995
+人	ren	9995
+人	m:person	9995
+人	ren+person	9995
+明	ming	9985
+明	m:sun-moon	9985
+明	ming+sun-moon	9985
+安	an	9980
+安	m:roof-calm	9980
+安	an+roof-calm	9980

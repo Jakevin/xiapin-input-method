@@ -1,0 +1,109 @@
+# Rime dictionary
+# encoding: utf-8
+#
+# Common English words and phrases for 蝦拼.
+# Format: text<Tab>code<Tab>weight
+
+---
+name: xiapin_English
+version: "0.1.0"
+sort: by_weight
+...
+
+hello	hello	120
+hi	hi	120
+thanks	thanks	120
+thank you	thankyou	120
+please	please	110
+sorry	sorry	110
+yes	yes	100
+no	no	100
+ok	ok	100
+okay	okay	100
+no problem	noproblem	100
+I see	isee	100
+I know	iknow	100
+I don't know	idontknow	100
+I understand	iunderstand	100
+let me check	letmecheck	95
+one moment	onemoment	95
+wait a moment	waitamoment	95
+good morning	goodmorning	95
+good afternoon	goodafternoon	90
+good evening	goodevening	90
+good night	goodnight	90
+see you	seeyou	90
+see you later	seeyoulater	90
+how are you	howareyou	90
+I'm fine	imfine	90
+nice to meet you	nicetomeetyou	90
+take care	takecare	85
+I agree	iagree	85
+I disagree	idisagree	85
+maybe	maybe	85
+today	today	80
+tomorrow	tomorrow	80
+yesterday	yesterday	80
+meeting	meeting	80
+schedule	schedule	80
+message	message	80
+email	email	80
+address	address	80
+phone	phone	80
+number	number	80
+name	name	80
+company	company	75
+customer	customer	75
+project	project	75
+document	document	75
+question	question	75
+answer	answer	75
+important	important	75
+urgent	urgent	75
+confirmed	confirmed	75
+cancelled	cancelled	75
+
+# English prefix/root candidates.
+verify	veri	180
+verified	veri	175
+verification	veri	170
+verifying	veri	165
+very	veri	120
+verify	verify	100
+verified	verified	95
+verification	verification	95
+verifying	verifying	90
+version	vers	160
+versions	vers	150
+vertical	vert	140
+value	val	150
+valid	val	145
+validation	val	140
+validate	val	140
+variable	var	145
+variant	var	135
+various	var	130
+important	imp	150
+improve	imp	145
+improvement	imp	140
+implementation	impl	150
+implement	impl	145
+implemented	impl	140
+information	info	150
+confirm	conf	145
+confirmed	conf	140
+configuration	conf	135
+configure	conf	130
+question	ques	145
+request	req	145
+required	req	140
+requirement	req	135
+response	resp	145
+responsible	resp	135
+document	doc	145
+documentation	doc	140
+dictionary	dict	145
+candidate	cand	145
+completion	comp	145
+complete	comp	140
+computer	comp	120

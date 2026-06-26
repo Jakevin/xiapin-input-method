@@ -1,0 +1,17 @@
+# Rime dictionary
+# encoding: utf-8
+#
+# Add personal words here. Keep entries original or clearly licensed.
+# Format:
+# text<Tab>code<Tab>weight
+
+---
+name: xiapin_custom
+version: "0.1.0"
+sort: by_weight
+...
+
+# Example:
+# 蝦拼輸入法	xiapin	9000
+台	tai	9990
+臺	tai	9980
