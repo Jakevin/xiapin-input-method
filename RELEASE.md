@@ -1,4 +1,9 @@
-# 蝦拼輸入法 Rime v0.1.2
+# 蝦拼輸入法 Rime v0.1.3
+
+## 更新內容
+
+- 新增 `Shift + Space` 在「蝦拼」與「蝦拼英文」之間切換。
+- README 補上從舊版更新流程。
 
 ## 安裝
 
@@ -32,6 +37,25 @@ bash install.sh
 
 - `蝦拼`：拼音後備、原創 demo 字根、英文候選，以及可選的本機嘸蝦米式碼表。
 - `蝦拼英文`：英文前綴候選模式，例如 `veri`。
+
+切換方式：
+
+```text
+蝦拼 -> Shift + Space -> 蝦拼英文
+蝦拼英文 -> Shift + Space -> 蝦拼
+```
+
+## 從舊版更新
+
+下載新版 release zip 後重新執行：
+
+```bash
+bash install.sh
+```
+
+如果你有自己的 `liur_Trad.dict.yaml`，更新時也要把它放在 `install.sh` 旁邊，安裝器才會重新產生本機 `xiapin_liur.dict.yaml`。
+
+安裝完成後，從鼠鬚管選單按「重新部署」。
 
 ## 可選 liur_Trad.dict.yaml
 

@@ -34,13 +34,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.2：
+或用指令下載 v0.1.3：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.2.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.2/xiapin-rime-v0.1.2.zip
-unzip xiapin-rime-v0.1.2.zip
-cd xiapin-rime-v0.1.2
+curl -L -o xiapin-rime-v0.1.3.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.3/xiapin-rime-v0.1.3.zip
+unzip xiapin-rime-v0.1.3.zip
+cd xiapin-rime-v0.1.3
 ```
 
 ### 3. 安裝蝦拼
@@ -55,6 +55,13 @@ bash install.sh
 
 ```text
 Control + `
+```
+
+也可以用 `Shift + Space` 在兩個方案之間切換：
+
+```text
+蝦拼 -> Shift + Space -> 蝦拼英文
+蝦拼英文 -> Shift + Space -> 蝦拼
 ```
 
 目前方案：
@@ -83,6 +90,24 @@ rime/
 ```
 
 這個檔案只存在你的電腦，不會被放進本專案。匯入時會移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
+
+## 從舊版更新
+
+下載新版 release zip 後，重新執行：
+
+```bash
+bash install.sh
+```
+
+安裝器會先備份同名舊檔，例如：
+
+```text
+xiapin.schema.yaml.bak.20260626123456
+```
+
+如果你有自己的 `liur_Trad.dict.yaml`，更新時也要把它放在 `install.sh` 旁邊，安裝器才會重新產生本機的 `xiapin_liur.dict.yaml`。
+
+安裝完成後，從鼠鬚管選單按「重新部署」。
 
 ## 測試輸入
 
