@@ -157,7 +157,10 @@ class XiapinLookupTest(unittest.TestCase):
         self.assertIn("- derive/\\+//", schema)
         self.assertIn("- script_translator@pinyin", schema)
         self.assertIn("dictionary: luna_pinyin", schema)
-        self.assertNotIn("name: ascii_mode", schema)
+        self.assertIn("name: ascii_mode", schema)
+        self.assertIn("- ascii_composer", schema)
+        self.assertIn("Shift_L: commit_code", schema)
+        self.assertIn("Shift_R: commit_code", schema)
 
     def test_rime_schema_uses_extended_dictionary_layer(self) -> None:
         schema = (ROOT / "rime" / "xiapin.schema.yaml").read_text(encoding="utf-8")

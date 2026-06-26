@@ -45,6 +45,12 @@ bash install.sh
 切換方式：
 
 ```text
+Shift -> 中文 / 西文
+```
+
+如果要進入英文候選方案：
+
+```text
 蝦拼 -> Shift + Space -> 蝦拼英文
 蝦拼英文 -> Shift + Space -> 蝦拼
 ```

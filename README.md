@@ -57,7 +57,9 @@ bash install.sh
 Control + `
 ```
 
-也可以用 `Shift + Space` 在兩個方案之間切換：
+單按 `Shift` 可以在「中文」與「西文」之間切換。
+
+也可以用 `Shift + Space` 在「蝦拼」與「蝦拼英文候選」兩個方案之間切換：
 
 ```text
 蝦拼 -> Shift + Space -> 蝦拼英文
