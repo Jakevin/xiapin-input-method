@@ -6,7 +6,6 @@ name: xiapin.extended
 version: "0.1.0"
 sort: by_weight
 import_tables:
-  - xiapin_base
   - xiapin_custom
   - xiapin_pinyin_liur
   - xiapin_English

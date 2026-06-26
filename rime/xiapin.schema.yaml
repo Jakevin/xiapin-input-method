@@ -8,8 +8,7 @@ schema:
   author:
     - "蝦拼輸入法 project"
   description: |
-    Experimental Pinyin plus original mnemonic root demo schema.
-    This schema does not copy or claim compatibility with Boshiamy/無蝦米 tables.
+    Experimental Pinyin plus openxiami root schema.
 
 switches:
   - name: ascii_mode
@@ -42,11 +41,8 @@ engine:
     - uniquifier
 
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyz[];':+-"
+  alphabet: "abcdefghijklmnopqrstuvwxyz[];'"
   delimiter: " '"
-  algebra:
-    - derive/^m://
-    - derive/\+//
 
 translator:
   dictionary: xiapin.extended

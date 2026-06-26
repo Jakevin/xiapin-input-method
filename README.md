@@ -3,10 +3,15 @@
 蝦拼輸入法是一個給 Rime / 鼠鬚管使用的實驗性輸入方案。目標是把三種輸入習慣放在同一個方案裡：
 
 - 拼音輸入：例如 `tai` 可以出現 `台`。
-- 字根輸入：例如 `m:box` 可以出現 `口`。
+- openxiami 嘸蝦米字根：例如 `a` 可以出現 `對`，`aaa` 可以出現 `鑫`。
 - 英文候選：例如 `veri` 可以出現 `verify`、`verified`、`verification`。
 
-這個專案不複製、不內建、不宣稱相容任何商業嘸蝦米 / Boshiamy 碼表。若使用者有自己的合法 `liur_Trad.dict.yaml`，安裝器可以在本機匯入作為蝦拼的低權重後備碼表。
+字根資料改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami 碼表：
+
+- `openxiami_TCJP.dict.yaml`
+- `openxiami_TradExt.dict.yaml`
+
+安裝時會產生過濾後的 `xiapin_liur.dict.yaml`，並移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
 
 ## 快速安裝
 
@@ -34,13 +39,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.5：
+或用指令下載 v0.1.6：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.5.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.5/xiapin-rime-v0.1.5.zip
-unzip xiapin-rime-v0.1.5.zip
-cd xiapin-rime-v0.1.5
+curl -L -o xiapin-rime-v0.1.6.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.6/xiapin-rime-v0.1.6.zip
+unzip xiapin-rime-v0.1.6.zip
+cd xiapin-rime-v0.1.6
 ```
 
 ### 3. 安裝蝦拼
@@ -66,46 +71,6 @@ Control + `
 蝦拼英文 -> Shift + Space -> 蝦拼
 ```
 
-目前方案：
-
-```text
-蝦拼
-蝦拼英文
-```
-
-## 可選：匯入自己的嘸蝦米碼表
-
-安裝器會優先讀取 `rime/liur_Trad.dict.yaml`，並在本機產生過濾後的 `xiapin_liur.dict.yaml`。
-專案同時提供 `xiapin_pinyin_liur.dict.yaml`，這是用 Squirrel 內建拼音表和 `liur_Trad.dict.yaml` 做交集後產生的單字拼音表。
-
-如果安裝包裡沒有 `rime/liur_Trad.dict.yaml`，也可以把自己的合法副本放進 `rime/` 再執行安裝：
-
-```text
-install.sh
-rime/
-  liur_Trad.dict.yaml
-```
-
-也相容舊方式：把 `liur_Trad.dict.yaml` 放在 `install.sh` 旁邊也可以。
-
-安裝器會在本機產生過濾後的後備碼表：
-
-```text
-~/Library/Rime/xiapin_liur.dict.yaml
-```
-
-匯入時會移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
-
-排序規則會優先保留短碼命中。例如 `hu`：
-
-```text
-悄  hu   # 兩碼嘸蝦米
-胡  hu   # 兩碼拼音單字
-私  hua  # 三碼嘸蝦米補全
-青  hue
-怪  hui
-```
-
 ## 從舊版更新
 
 下載新版 release zip 後，重新執行：
@@ -120,8 +85,6 @@ bash install.sh
 xiapin.schema.yaml.bak.20260626123456
 ```
 
-更新時，安裝器會優先使用 `rime/liur_Trad.dict.yaml`。如果該檔不存在，就會改找 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
-
 安裝完成後，從鼠鬚管選單按「重新部署」。
 
 ## 測試輸入
@@ -129,24 +92,17 @@ xiapin.schema.yaml.bak.20260626123456
 蝦拼方案：
 
 ```text
-ni        -> 你 / 尼
-tai       -> 台
-m:box     -> 口
-m:person  -> 人 / 你
-veri      -> verify / verified / verification
-thankyou  -> thank you
-,         -> ，
-.         -> 。
-```
-
-如果有匯入 `liur_Trad.dict.yaml`：
-
-```text
-a    -> 對
-aaa  -> 鑫
-bn   -> 人
-ix   -> 我
-oo   -> 口
+tai      -> 台
+mofa     -> 魔法
+a        -> 對
+aaa      -> 鑫
+bn       -> 人
+ix       -> 我
+hu       -> 悄 / 胡
+veri     -> verify / verified / verification
+thankyou -> thank you
+,        -> ，
+.        -> 。
 ```
 
 蝦拼英文方案：
@@ -157,24 +113,27 @@ impl -> implement / implementation / implemented
 conf -> confirm / confirmed / configuration
 ```
 
-## 開發與驗證
+## 字典產生
 
-查碼核心：
+安裝器會從 openxiami 碼表產生本機 root 字典：
 
-```bash
-python3 src/xiapin.py ni
-python3 src/xiapin.py m:box
-python3 src/xiapin.py ni+person
-python3 src/xiapin.py --validate
+```text
+~/Library/Rime/xiapin_liur.dict.yaml
 ```
 
-重新產生 Rime base 字典：
+專案也提供 `xiapin_pinyin_liur.dict.yaml`。這是用 Squirrel 內建拼音表、`essay.txt` 字頻和 openxiami 字集交集產生的單字拼音表，讓短碼排序可以穩定控制。
 
-```bash
-python3 tools/export_rime.py
+排序規則會優先保留短碼命中。例如 `hu`：
+
+```text
+悄  hu   # 兩碼 openxiami
+胡  hu   # 兩碼拼音單字
+私  hua  # 三碼 openxiami 補全
+青  hue
+怪  hui
 ```
 
-重新產生拼音與嘸蝦米交集字典：
+重新產生拼音與 openxiami 交集字典：
 
 ```bash
 python3 tools/export_pinyin_liur.py
@@ -185,8 +144,11 @@ python3 tools/export_pinyin_liur.py
 ```text
 /Library/Input Methods/Squirrel.app/Contents/SharedSupport/luna_pinyin.dict.yaml
 /Library/Input Methods/Squirrel.app/Contents/SharedSupport/essay.txt
-rime/liur_Trad.dict.yaml
+rime/openxiami_TCJP.dict.yaml
+rime/openxiami_TradExt.dict.yaml
 ```
+
+## 開發與驗證
 
 跑測試：
 
@@ -197,18 +159,19 @@ python3 -m unittest discover -s tests
 ## 專案結構
 
 ```text
-rime/xiapin.schema.yaml          # 蝦拼主方案
-rime/xiapin_english.schema.yaml  # 蝦拼英文候選方案
-rime/xiapin.extended.dict.yaml   # 匯入多個字典
-rime/xiapin_base.dict.yaml       # 由 demo JSON 產生
-rime/xiapin_custom.dict.yaml     # 使用者自訂詞
-rime/xiapin_pinyin_liur.dict.yaml # 拼音表與嘸蝦米字集交集產生的單字拼音表
-rime/xiapin_English.dict.yaml    # 英文候選詞庫
-tools/export_pinyin_liur.py      # 重新產生拼音交集字典
+rime/xiapin.schema.yaml           # 蝦拼主方案
+rime/xiapin_english.schema.yaml   # 蝦拼英文候選方案
+rime/xiapin.extended.dict.yaml    # 匯入多個字典
+rime/xiapin_custom.dict.yaml      # 使用者自訂詞
+rime/xiapin_pinyin_liur.dict.yaml # 拼音表與 openxiami 字集交集產生的單字拼音表
+rime/openxiami_TCJP.dict.yaml     # openxiami 主碼表，來源 ryanwuson/rime-liur
+rime/openxiami_TradExt.dict.yaml  # openxiami 擴充碼表，來源 ryanwuson/rime-liur
+rime/xiapin_English.dict.yaml     # 英文候選詞庫
+tools/export_pinyin_liur.py       # 重新產生拼音交集字典
 ```
 
 ## 授權與資料來源
 
-`data/demo_dictionary.json` 裡的 demo 資料是為本專案手工建立的 `CC0-1.0` 範例資料。
+openxiami 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
 
-請不要把來源不明、授權不明或專有的輸入法碼表提交到本專案。
+注意：截至本版整理時，該 repo 的 GitHub metadata 沒有標準 license 欄位，README 只描述「基於開源授權」。本專案保留來源標註；若上游補上明確授權，應同步更新本段說明。

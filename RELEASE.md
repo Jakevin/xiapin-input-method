@@ -1,13 +1,15 @@
-# 蝦拼輸入法 Rime v0.1.5
+# 蝦拼輸入法 Rime v0.1.6
 
 ## 更新內容
 
-- 新增 `xiapin_pinyin_liur.dict.yaml`，由 Squirrel 內建拼音表與 `liur_Trad.dict.yaml` 交集產生。
-- 修正短碼排序：例如 `hu` 會讓兩碼嘸蝦米命中與兩碼拼音單字排在三碼補全前面。
-- 新增 `tools/export_pinyin_liur.py`，之後可重新產生拼音與嘸蝦米交集字典。
-- `install.sh` 會優先讀取 `rime/liur_Trad.dict.yaml`，再回退到 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
-- 新增 `Shift + Space` 在「蝦拼」與「蝦拼英文」之間切換。
-- README 補上從舊版更新流程。
+- 字根碼表改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami：
+  - `openxiami_TCJP.dict.yaml`
+  - `openxiami_TradExt.dict.yaml`
+- 移除舊的原創 demo 字根層。
+- 移除舊 demo 字典、demo 查碼 CLI 與舊 demo 文件。
+- 重新產生 `xiapin_pinyin_liur.dict.yaml`，改用 openxiami 字集與 Squirrel 內建拼音表交集。
+- `install.sh` 會從 openxiami 產生過濾後的 `xiapin_liur`，並移除日文假名與 `,`、`.` 符號碼。
+- 保留 `Shift` 切換中文/西文，`Shift + Space` 切換蝦拼英文候選方案。
 
 ## 安裝
 
@@ -37,12 +39,7 @@ bash install.sh
 
 接著從 macOS 右上角鼠鬚管選單按「重新部署」。
 
-## 方案
-
-- `蝦拼`：拼音後備、原創 demo 字根、英文候選，以及可選的本機嘸蝦米式碼表。
-- `蝦拼英文`：英文前綴候選模式，例如 `veri`。
-
-切換方式：
+## 切換方式
 
 ```text
 Shift -> 中文 / 西文
@@ -63,45 +60,24 @@ Shift -> 中文 / 西文
 bash install.sh
 ```
 
-更新時，安裝器會優先使用 `rime/liur_Trad.dict.yaml`。如果該檔不存在，就會改找 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
-
 安裝完成後，從鼠鬚管選單按「重新部署」。
-
-## 可選 liur_Trad.dict.yaml
-
-安裝器會優先讀取 `rime/liur_Trad.dict.yaml`，並在本機匯入成過濾後的 `xiapin_liur`。
-
-如果安裝包裡沒有 `rime/liur_Trad.dict.yaml`，也可以把自己的合法副本放進 `rime/` 再執行安裝：
-
-```text
-install.sh
-rime/
-  liur_Trad.dict.yaml
-```
-
-也相容舊方式：把 `liur_Trad.dict.yaml` 放在 `install.sh` 旁邊也可以。
-
-安裝器會在本機匯入成過濾後的 `xiapin_liur`，並移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
-
-v0.1.2 起，匯入可選 `liur_Trad.dict.yaml` 時會自動過濾日文假名相關碼。
 
 ## 測試碼
 
 ```text
-ni       -> 你 / 尼
 tai      -> 台
-m:box    -> 口
+mofa     -> 魔法
+a        -> 對
+aaa      -> 鑫
+bn       -> 人
+ix       -> 我
+hu       -> 悄 / 胡
 veri     -> verify / verified / verification
 thankyou -> thank you
 ```
 
-如果有匯入 `liur_Trad.dict.yaml`：
+## 資料來源
 
-```text
-a   -> 對
-aaa -> 鑫
-bn  -> 人
-ix  -> 我
-oo  -> 口
-hu  -> 悄 / 胡
-```
+openxiami 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
+
+注意：截至本版整理時，該 repo 的 GitHub metadata 沒有標準 license 欄位，README 只描述「基於開源授權」。本 release 保留來源標註；若上游補上明確授權，應同步更新說明。
