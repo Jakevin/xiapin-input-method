@@ -34,13 +34,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.3：
+或用指令下載 v0.1.4：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.3.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.3/xiapin-rime-v0.1.3.zip
-unzip xiapin-rime-v0.1.3.zip
-cd xiapin-rime-v0.1.3
+curl -L -o xiapin-rime-v0.1.4.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.4/xiapin-rime-v0.1.4.zip
+unzip xiapin-rime-v0.1.4.zip
+cd xiapin-rime-v0.1.4
 ```
 
 ### 3. 安裝蝦拼
@@ -73,15 +73,17 @@ Control + `
 
 ## 可選：匯入自己的嘸蝦米碼表
 
-公開安裝包不包含 `liur_Trad.dict.yaml`，因為目前這類碼表常見檔案未附清楚公開授權。
+安裝器會優先讀取 `rime/liur_Trad.dict.yaml`，並在本機產生過濾後的 `xiapin_liur.dict.yaml`。
 
-如果你有自己的合法副本，把它放在 `install.sh` 旁邊再執行安裝：
+如果安裝包裡沒有 `rime/liur_Trad.dict.yaml`，也可以把自己的合法副本放進 `rime/` 再執行安裝：
 
 ```text
 install.sh
-liur_Trad.dict.yaml
 rime/
+  liur_Trad.dict.yaml
 ```
+
+也相容舊方式：把 `liur_Trad.dict.yaml` 放在 `install.sh` 旁邊也可以。
 
 安裝器會在本機產生過濾後的後備碼表：
 
@@ -105,7 +107,7 @@ bash install.sh
 xiapin.schema.yaml.bak.20260626123456
 ```
 
-如果你有自己的 `liur_Trad.dict.yaml`，更新時也要把它放在 `install.sh` 旁邊，安裝器才會重新產生本機的 `xiapin_liur.dict.yaml`。
+更新時，安裝器會優先使用 `rime/liur_Trad.dict.yaml`。如果該檔不存在，就會改找 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
 
 安裝完成後，從鼠鬚管選單按「重新部署」。
 

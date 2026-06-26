@@ -53,8 +53,12 @@ for schema in ("xiapin", "xiapin_english"):
 
 default_custom.write_text(text, encoding="utf-8")
 
-liur_source = root / "liur_Trad.dict.yaml"
-if not liur_source.exists():
+liur_candidates = [
+    root / "rime" / "liur_Trad.dict.yaml",
+    root / "liur_Trad.dict.yaml",
+]
+liur_source = next((path for path in liur_candidates if path.exists()), None)
+if liur_source is None:
     print("liur_Trad.dict.yaml not found; installing without optional Boshiamy table.")
     raise SystemExit(0)
 

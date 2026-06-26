@@ -1,7 +1,8 @@
-# 蝦拼輸入法 Rime v0.1.3
+# 蝦拼輸入法 Rime v0.1.4
 
 ## 更新內容
 
+- `install.sh` 會優先讀取 `rime/liur_Trad.dict.yaml`，再回退到 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
 - 新增 `Shift + Space` 在「蝦拼」與「蝦拼英文」之間切換。
 - README 補上從舊版更新流程。
 
@@ -53,21 +54,23 @@ bash install.sh
 bash install.sh
 ```
 
-如果你有自己的 `liur_Trad.dict.yaml`，更新時也要把它放在 `install.sh` 旁邊，安裝器才會重新產生本機 `xiapin_liur.dict.yaml`。
+更新時，安裝器會優先使用 `rime/liur_Trad.dict.yaml`。如果該檔不存在，就會改找 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
 
 安裝完成後，從鼠鬚管選單按「重新部署」。
 
 ## 可選 liur_Trad.dict.yaml
 
-本安裝包不包含 `liur_Trad.dict.yaml`，因為該檔案未附清楚公開授權資訊。
+安裝器會優先讀取 `rime/liur_Trad.dict.yaml`，並在本機匯入成過濾後的 `xiapin_liur`。
 
-如果你有自己的合法副本，請把它放在 `install.sh` 旁邊再執行安裝：
+如果安裝包裡沒有 `rime/liur_Trad.dict.yaml`，也可以把自己的合法副本放進 `rime/` 再執行安裝：
 
 ```text
 install.sh
-liur_Trad.dict.yaml
 rime/
+  liur_Trad.dict.yaml
 ```
+
+也相容舊方式：把 `liur_Trad.dict.yaml` 放在 `install.sh` 旁邊也可以。
 
 安裝器會在本機匯入成過濾後的 `xiapin_liur`，並移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
 
