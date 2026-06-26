@@ -1,7 +1,10 @@
-# 蝦拼輸入法 Rime v0.1.4
+# 蝦拼輸入法 Rime v0.1.5
 
 ## 更新內容
 
+- 新增 `xiapin_pinyin_liur.dict.yaml`，由 Squirrel 內建拼音表與 `liur_Trad.dict.yaml` 交集產生。
+- 修正短碼排序：例如 `hu` 會讓兩碼嘸蝦米命中與兩碼拼音單字排在三碼補全前面。
+- 新增 `tools/export_pinyin_liur.py`，之後可重新產生拼音與嘸蝦米交集字典。
 - `install.sh` 會優先讀取 `rime/liur_Trad.dict.yaml`，再回退到 `install.sh` 旁邊的 `liur_Trad.dict.yaml`。
 - 新增 `Shift + Space` 在「蝦拼」與「蝦拼英文」之間切換。
 - README 補上從舊版更新流程。
@@ -94,4 +97,5 @@ aaa -> 鑫
 bn  -> 人
 ix  -> 我
 oo  -> 口
+hu  -> 悄 / 胡
 ```
