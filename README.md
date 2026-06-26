@@ -74,6 +74,7 @@ Control + `
 ## 可選：匯入自己的嘸蝦米碼表
 
 安裝器會優先讀取 `rime/liur_Trad.dict.yaml`，並在本機產生過濾後的 `xiapin_liur.dict.yaml`。
+專案同時提供 `xiapin_pinyin_liur.dict.yaml`，這是用 Squirrel 內建拼音表和 `liur_Trad.dict.yaml` 做交集後產生的單字拼音表。
 
 如果安裝包裡沒有 `rime/liur_Trad.dict.yaml`，也可以把自己的合法副本放進 `rime/` 再執行安裝：
 
@@ -91,7 +92,17 @@ rime/
 ~/Library/Rime/xiapin_liur.dict.yaml
 ```
 
-這個檔案只存在你的電腦，不會被放進本專案。匯入時會移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
+匯入時會移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
+
+排序規則會優先保留短碼命中。例如 `hu`：
+
+```text
+悄  hu   # 兩碼嘸蝦米
+胡  hu   # 兩碼拼音單字
+私  hua  # 三碼嘸蝦米補全
+青  hue
+怪  hui
+```
 
 ## 從舊版更新
 
@@ -161,6 +172,20 @@ python3 src/xiapin.py --validate
 python3 tools/export_rime.py
 ```
 
+重新產生拼音與嘸蝦米交集字典：
+
+```bash
+python3 tools/export_pinyin_liur.py
+```
+
+這個工具會讀取：
+
+```text
+/Library/Input Methods/Squirrel.app/Contents/SharedSupport/luna_pinyin.dict.yaml
+/Library/Input Methods/Squirrel.app/Contents/SharedSupport/essay.txt
+rime/liur_Trad.dict.yaml
+```
+
 跑測試：
 
 ```bash
@@ -175,7 +200,9 @@ rime/xiapin_english.schema.yaml  # 蝦拼英文候選方案
 rime/xiapin.extended.dict.yaml   # 匯入多個字典
 rime/xiapin_base.dict.yaml       # 由 demo JSON 產生
 rime/xiapin_custom.dict.yaml     # 使用者自訂詞
+rime/xiapin_pinyin_liur.dict.yaml # 拼音表與嘸蝦米字集交集產生的單字拼音表
 rime/xiapin_English.dict.yaml    # 英文候選詞庫
+tools/export_pinyin_liur.py      # 重新產生拼音交集字典
 ```
 
 ## 授權與資料來源

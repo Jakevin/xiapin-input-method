@@ -20,6 +20,7 @@ copy_file "$ROOT/rime/xiapin_english.schema.yaml" "$RIME_DIR/xiapin_english.sche
 copy_file "$ROOT/rime/xiapin.extended.dict.yaml" "$RIME_DIR/xiapin.extended.dict.yaml"
 copy_file "$ROOT/rime/xiapin_base.dict.yaml" "$RIME_DIR/xiapin_base.dict.yaml"
 copy_file "$ROOT/rime/xiapin_custom.dict.yaml" "$RIME_DIR/xiapin_custom.dict.yaml"
+copy_file "$ROOT/rime/xiapin_pinyin_liur.dict.yaml" "$RIME_DIR/xiapin_pinyin_liur.dict.yaml"
 copy_file "$ROOT/rime/xiapin_English.dict.yaml" "$RIME_DIR/xiapin_English.dict.yaml"
 copy_file "$ROOT/rime/xiapin.custom.yaml" "$RIME_DIR/xiapin.custom.yaml"
 
@@ -89,13 +90,15 @@ for raw in liur_source.read_text(encoding="utf-8-sig").splitlines():
     if "," in code or "." in code:
         continue
     if text and code:
-        lines.append(f"{text}\t{code}\t1")
+        normalized_code = code[1:] if code.startswith("~") else code
+        weight = max(1, 10_000 - len(normalized_code) * 100)
+        lines.append(f"{text}\t{code}\t{weight}")
 (rime_dir / "xiapin_liur.dict.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 extended = rime_dir / "xiapin.extended.dict.yaml"
 extended_text = extended.read_text(encoding="utf-8")
 if "- xiapin_liur" not in extended_text:
-    extended_text = extended_text.replace("  - xiapin_English\n", "  - xiapin_English\n  - xiapin_liur\n")
+    extended_text = extended_text.replace("  - xiapin_pinyin_liur\n", "  - xiapin_pinyin_liur\n  - xiapin_liur\n")
     extended.write_text(extended_text, encoding="utf-8")
 print("Optional liur_Trad.dict.yaml imported as filtered xiapin_liur.")
 PY
