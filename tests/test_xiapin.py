@@ -36,6 +36,7 @@ class XiapinRimeTest(unittest.TestCase):
         self.assertNotIn("- xiapin_base", extended)
         self.assertIn("- xiapin_custom", extended)
         self.assertIn("- xiapin_pinyin_liur", extended)
+        self.assertIn("- easy_en", extended)
         self.assertIn("- xiapin_English", extended)
         self.assertIn("name: xiapin_custom", custom)
         self.assertIn("thank you\tthankyou\t120", english)
@@ -68,13 +69,18 @@ class XiapinRimeTest(unittest.TestCase):
     def test_english_candidate_schema(self) -> None:
         schema = (ROOT / "rime" / "xiapin_english.schema.yaml").read_text(encoding="utf-8")
         default = (ROOT / "rime" / "default.custom.yaml").read_text(encoding="utf-8")
+        easy_en = (ROOT / "rime" / "easy_en.dict.yaml").read_text(encoding="utf-8-sig")
 
         self.assertIn("schema_id: xiapin_english", schema)
         self.assertIn("name: \"蝦拼英文\"", schema)
-        self.assertIn("dictionary: xiapin_English", schema)
+        self.assertIn("dictionary: easy_en", schema)
+        self.assertIn("enable_sentence: true", schema)
         self.assertNotIn("name: ascii_mode", schema)
         self.assertNotIn("toggle: ascii_mode", schema)
         self.assertIn("- schema: xiapin_english", default)
+        self.assertIn("name: easy_en", easy_en)
+        self.assertIn("verify\tverify", easy_en)
+        self.assertIn("implementation\timplementation", easy_en)
 
 
 if __name__ == "__main__":

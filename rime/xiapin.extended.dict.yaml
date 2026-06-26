@@ -8,5 +8,6 @@ sort: by_weight
 import_tables:
   - xiapin_custom
   - xiapin_pinyin_liur
+  - easy_en
   - xiapin_English
 ...

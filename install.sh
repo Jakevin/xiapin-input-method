@@ -20,6 +20,7 @@ copy_file "$ROOT/rime/xiapin_english.schema.yaml" "$RIME_DIR/xiapin_english.sche
 copy_file "$ROOT/rime/xiapin.extended.dict.yaml" "$RIME_DIR/xiapin.extended.dict.yaml"
 copy_file "$ROOT/rime/xiapin_custom.dict.yaml" "$RIME_DIR/xiapin_custom.dict.yaml"
 copy_file "$ROOT/rime/xiapin_pinyin_liur.dict.yaml" "$RIME_DIR/xiapin_pinyin_liur.dict.yaml"
+copy_file "$ROOT/rime/easy_en.dict.yaml" "$RIME_DIR/easy_en.dict.yaml"
 copy_file "$ROOT/rime/xiapin_English.dict.yaml" "$RIME_DIR/xiapin_English.dict.yaml"
 copy_file "$ROOT/rime/xiapin.custom.yaml" "$RIME_DIR/xiapin.custom.yaml"
 

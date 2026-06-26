@@ -4,7 +4,7 @@
 
 - 拼音輸入：例如 `tai` 可以出現 `台`。
 - openxiami 嘸蝦米字根：例如 `a` 可以出現 `對`，`aaa` 可以出現 `鑫`。
-- 英文候選：例如 `veri` 可以出現 `verify`、`verified`、`verification`。
+- 英文候選：使用 `ryanwuson/rime-liur` 的 `easy_en.dict.yaml`，例如 `veri` 可以出現 `verify`、`verified`、`verification`。
 
 字根資料改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami 碼表：
 
@@ -39,13 +39,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.6：
+或用指令下載 v0.1.7：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.6.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.6/xiapin-rime-v0.1.6.zip
-unzip xiapin-rime-v0.1.6.zip
-cd xiapin-rime-v0.1.6
+curl -L -o xiapin-rime-v0.1.7.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.7/xiapin-rime-v0.1.7.zip
+unzip xiapin-rime-v0.1.7.zip
+cd xiapin-rime-v0.1.7
 ```
 
 ### 3. 安裝蝦拼
@@ -113,6 +113,12 @@ impl -> implement / implementation / implemented
 conf -> confirm / confirmed / configuration
 ```
 
+英文候選主要來自：
+
+```text
+rime/easy_en.dict.yaml
+```
+
 ## 字典產生
 
 安裝器會從 openxiami 碼表產生本機 root 字典：
@@ -166,12 +172,13 @@ rime/xiapin_custom.dict.yaml      # 使用者自訂詞
 rime/xiapin_pinyin_liur.dict.yaml # 拼音表與 openxiami 字集交集產生的單字拼音表
 rime/openxiami_TCJP.dict.yaml     # openxiami 主碼表，來源 ryanwuson/rime-liur
 rime/openxiami_TradExt.dict.yaml  # openxiami 擴充碼表，來源 ryanwuson/rime-liur
-rime/xiapin_English.dict.yaml     # 英文候選詞庫
+rime/easy_en.dict.yaml            # 英文候選詞庫，來源 ryanwuson/rime-liur
+rime/xiapin_English.dict.yaml     # 蝦拼英文補充詞庫
 tools/export_pinyin_liur.py       # 重新產生拼音交集字典
 ```
 
 ## 授權與資料來源
 
-openxiami 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
+openxiami 與 easy_en 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
 
 注意：截至本版整理時，該 repo 的 GitHub metadata 沒有標準 license 欄位，README 只描述「基於開源授權」。本專案保留來源標註；若上游補上明確授權，應同步更新本段說明。

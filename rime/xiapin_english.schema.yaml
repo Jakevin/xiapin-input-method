@@ -34,15 +34,18 @@ engine:
     - table_translator
 
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyz"
+  alphabet: "zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA"
   delimiter: " '"
 
 translator:
-  dictionary: xiapin_English
-  enable_sentence: false
+  dictionary: easy_en
+  enable_sentence: true
   enable_user_dict: false
   enable_completion: true
   initial_quality: 1000
+  spelling_hints: 9
+  comment_format:
+    - xform/^.+$//
 
 punctuator:
   import_preset: default

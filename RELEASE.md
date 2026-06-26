@@ -1,15 +1,13 @@
-# 蝦拼輸入法 Rime v0.1.6
+# 蝦拼輸入法 Rime v0.1.7
 
 ## 更新內容
 
-- 字根碼表改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami：
+- 英文候選改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 `easy_en.dict.yaml`。
+- `蝦拼英文` 方案直接使用 `easy_en` 字典，支援更完整的英文詞庫與 completion。
+- 主方案 `xiapin.extended` 也匯入 `easy_en`，並保留 `xiapin_English` 作為補充詞庫。
+- 延續 v0.1.6 的 openxiami 字根：
   - `openxiami_TCJP.dict.yaml`
   - `openxiami_TradExt.dict.yaml`
-- 移除舊的原創 demo 字根層。
-- 移除舊 demo 字典、demo 查碼 CLI 與舊 demo 文件。
-- 重新產生 `xiapin_pinyin_liur.dict.yaml`，改用 openxiami 字集與 Squirrel 內建拼音表交集。
-- `install.sh` 會從 openxiami 產生過濾後的 `xiapin_liur`，並移除日文假名與 `,`、`.` 符號碼。
-- 保留 `Shift` 切換中文/西文，`Shift + Space` 切換蝦拼英文候選方案。
 
 ## 安裝
 
@@ -73,11 +71,12 @@ bn       -> 人
 ix       -> 我
 hu       -> 悄 / 胡
 veri     -> verify / verified / verification
-thankyou -> thank you
+impl     -> implement / implementation
+conf     -> confirm / configuration
 ```
 
 ## 資料來源
 
-openxiami 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
+openxiami 與 easy_en 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
 
 注意：截至本版整理時，該 repo 的 GitHub metadata 沒有標準 license 欄位，README 只描述「基於開源授權」。本 release 保留來源標註；若上游補上明確授權，應同步更新說明。
