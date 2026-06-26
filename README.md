@@ -34,13 +34,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.1：
+或用指令下載 v0.1.2：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.1.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.1/xiapin-rime-v0.1.1.zip
-unzip xiapin-rime-v0.1.1.zip
-cd xiapin-rime-v0.1.1
+curl -L -o xiapin-rime-v0.1.2.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.2/xiapin-rime-v0.1.2.zip
+unzip xiapin-rime-v0.1.2.zip
+cd xiapin-rime-v0.1.2
 ```
 
 ### 3. 安裝蝦拼
@@ -76,13 +76,13 @@ liur_Trad.dict.yaml
 rime/
 ```
 
-安裝器會在本機產生：
+安裝器會在本機產生過濾後的後備碼表：
 
 ```text
 ~/Library/Rime/xiapin_liur.dict.yaml
 ```
 
-這個檔案只存在你的電腦，不會被放進本專案。
+這個檔案只存在你的電腦，不會被放進本專案。匯入時會移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
 
 ## 測試輸入
 

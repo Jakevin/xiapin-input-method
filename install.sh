@@ -58,11 +58,6 @@ if not liur_source.exists():
     print("liur_Trad.dict.yaml not found; installing without optional Boshiamy table.")
     raise SystemExit(0)
 
-(rime_dir / "liur_Trad.dict.yaml").write_text(
-    liur_source.read_text(encoding="utf-8-sig"),
-    encoding="utf-8",
-)
-
 lines = [
     "# Rime dictionary",
     "# encoding: utf-8",
@@ -85,6 +80,10 @@ for raw in liur_source.read_text(encoding="utf-8-sig").splitlines():
     if len(parts) < 2:
         continue
     text, code = parts[0].strip(), parts[1].strip()
+    if any("\u3040" <= ch <= "\u30ff" for ch in text):
+        continue
+    if "," in code or "." in code:
+        continue
     if text and code:
         lines.append(f"{text}\t{code}\t1")
 (rime_dir / "xiapin_liur.dict.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -94,7 +93,7 @@ extended_text = extended.read_text(encoding="utf-8")
 if "- xiapin_liur" not in extended_text:
     extended_text = extended_text.replace("  - xiapin_English\n", "  - xiapin_English\n  - xiapin_liur\n")
     extended.write_text(extended_text, encoding="utf-8")
-print("Optional liur_Trad.dict.yaml installed as xiapin_liur.")
+print("Optional liur_Trad.dict.yaml imported as filtered xiapin_liur.")
 PY
 
 cat <<EOF
