@@ -81,6 +81,12 @@ class XiapinRimeTest(unittest.TestCase):
         self.assertIn("name: openxiami_TradExt", trad_ext)
 
     def test_pinyin_openxiami_dictionary_is_reproducible(self) -> None:
+        default_shared_support = Path("/Library/Input Methods/Squirrel.app/Contents/SharedSupport")
+        luna_pinyin = default_shared_support / "luna_pinyin.dict.yaml"
+        essay = default_shared_support / "essay.txt"
+        if not luna_pinyin.exists() or not essay.exists():
+            self.skipTest("Squirrel shared support dictionaries are not available")
+
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "xiapin_pinyin_liur.dict.yaml"
             subprocess.run(
