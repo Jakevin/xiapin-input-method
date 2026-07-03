@@ -1,7 +1,10 @@
-# 蝦拼輸入法 Rime v0.1.7
+# 蝦拼輸入法 Rime v0.1.8
 
 ## 更新內容
 
+- 主方案新增候選窗字根提示，拼音候選會在右側顯示對應的嘸蝦米字根。
+- 新增 `rime/lua/boshiamy_comment.lua`，透過 `librime-lua` filter 讀取 openxiami 字根表並補上 candidate comment。
+- `install.sh` 會同步安裝 Lua filter 到使用者 Rime 目錄的 `lua/` 子目錄。
 - 英文候選改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 `easy_en.dict.yaml`。
 - `蝦拼英文` 方案直接使用 `easy_en` 字典，支援更完整的英文詞庫與 completion。
 - 主方案 `xiapin.extended` 也匯入 `easy_en`，並保留 `xiapin_English` 作為補充詞庫。
