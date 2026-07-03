@@ -1,0 +1,53 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build release zip
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate
+        run: |
+          python3 -m unittest discover -s tests
+          bash -n install.sh
+
+      - name: Package
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${GITHUB_REF_NAME}"
+          package="xiapin-rime-${tag}"
+          asset="${package}.zip"
+
+          mkdir -p "dist/${package}"
+          cp README.md RELEASE.md install.sh "dist/${package}/"
+          cp -R rime "dist/${package}/"
+
+          chmod +x "dist/${package}/install.sh"
+          (cd dist && zip -r "${asset}" "${package}")
+
+          echo "asset=dist/${asset}" >> "$GITHUB_OUTPUT"
+          echo "title=蝦拼輸入法 Rime ${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            "${{ steps.package.outputs.asset }}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "${{ steps.package.outputs.title }}" \
+            --notes-file RELEASE.md
