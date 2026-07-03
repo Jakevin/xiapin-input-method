@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 import tempfile
@@ -22,6 +23,7 @@ class XiapinRimeTest(unittest.TestCase):
         self.assertNotIn("- derive/^m://", schema)
         self.assertNotIn("- derive/\\+//", schema)
         self.assertIn("- script_translator@pinyin", schema)
+        self.assertIn("- lua_filter@*boshiamy_comment", schema)
         self.assertIn("dictionary: luna_pinyin", schema)
         self.assertIn("name: ascii_mode", schema)
         self.assertIn("- ascii_composer", schema)
@@ -40,6 +42,34 @@ class XiapinRimeTest(unittest.TestCase):
         self.assertIn("- xiapin_English", extended)
         self.assertIn("name: xiapin_custom", custom)
         self.assertIn("thank you\tthankyou\t120", english)
+
+    def test_boshiamy_comment_filter_is_installed(self) -> None:
+        lua = (ROOT / "rime" / "lua" / "boshiamy_comment.lua").read_text(encoding="utf-8")
+        install = (ROOT / "install.sh").read_text(encoding="utf-8")
+
+        self.assertIn("function M.init(env)", lua)
+        self.assertIn("../xiapin_liur.dict.yaml", lua)
+        self.assertIn("openxiami_TCJP.dict.yaml", lua)
+        self.assertIn("openxiami_TradExt.dict.yaml", lua)
+        self.assertIn("mkdir -p \"$RIME_DIR/lua\"", install)
+        self.assertIn("copy_file \"$ROOT/rime/lua/boshiamy_comment.lua\"", install)
+
+    def test_install_places_lua_filter_next_to_generated_lookup(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            env = os.environ.copy()
+            env["RIME_USER_DIR"] = temp_dir
+            subprocess.run(
+                ["bash", str(ROOT / "install.sh")],
+                cwd=ROOT,
+                env=env,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+
+            rime_dir = Path(temp_dir)
+            self.assertTrue((rime_dir / "lua" / "boshiamy_comment.lua").exists())
+            self.assertTrue((rime_dir / "xiapin_liur.dict.yaml").exists())
 
     def test_openxiami_sources_are_bundled(self) -> None:
         tcjp = (ROOT / "rime" / "openxiami_TCJP.dict.yaml").read_text(encoding="utf-8-sig")

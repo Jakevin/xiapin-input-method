@@ -39,6 +39,7 @@ engine:
     - script_translator@pinyin
   filters:
     - uniquifier
+    - lua_filter@*boshiamy_comment
 
 speller:
   alphabet: "abcdefghijklmnopqrstuvwxyz[];'"

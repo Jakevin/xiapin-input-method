@@ -5,6 +5,7 @@
 - 拼音輸入：例如 `tai` 可以出現 `台`。
 - openxiami 嘸蝦米字根：例如 `a` 可以出現 `對`，`aaa` 可以出現 `鑫`。
 - 英文候選：使用 `ryanwuson/rime-liur` 的 `easy_en.dict.yaml`，例如 `veri` 可以出現 `verify`、`verified`、`verification`。
+- 候選窗字根提示：拼音候選會在右側顯示對應的嘸蝦米字根。
 
 字根資料改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami 碼表：
 
@@ -168,6 +169,7 @@ python3 -m unittest discover -s tests
 rime/xiapin.schema.yaml           # 蝦拼主方案
 rime/xiapin_english.schema.yaml   # 蝦拼英文候選方案
 rime/xiapin.extended.dict.yaml    # 匯入多個字典
+rime/lua/boshiamy_comment.lua     # 候選窗嘸蝦米字根提示
 rime/xiapin_custom.dict.yaml      # 使用者自訂詞
 rime/xiapin_pinyin_liur.dict.yaml # 拼音表與 openxiami 字集交集產生的單字拼音表
 rime/openxiami_TCJP.dict.yaml     # openxiami 主碼表，來源 ryanwuson/rime-liur

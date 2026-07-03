@@ -5,6 +5,7 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RIME_DIR="${RIME_USER_DIR:-$HOME/Library/Rime}"
 
 mkdir -p "$RIME_DIR"
+mkdir -p "$RIME_DIR/lua"
 
 copy_file() {
   local src="$1"
@@ -23,6 +24,7 @@ copy_file "$ROOT/rime/xiapin_pinyin_liur.dict.yaml" "$RIME_DIR/xiapin_pinyin_liu
 copy_file "$ROOT/rime/easy_en.dict.yaml" "$RIME_DIR/easy_en.dict.yaml"
 copy_file "$ROOT/rime/xiapin_English.dict.yaml" "$RIME_DIR/xiapin_English.dict.yaml"
 copy_file "$ROOT/rime/xiapin.custom.yaml" "$RIME_DIR/xiapin.custom.yaml"
+copy_file "$ROOT/rime/lua/boshiamy_comment.lua" "$RIME_DIR/lua/boshiamy_comment.lua"
 
 python3 - "$ROOT" "$RIME_DIR" <<'PY'
 from __future__ import annotations
