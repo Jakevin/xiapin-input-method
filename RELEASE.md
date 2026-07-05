@@ -1,7 +1,10 @@
-# 蝦拼輸入法 Rime v0.1.8
+# 蝦拼輸入法 Rime v0.1.9
 
 ## 更新內容
 
+- 改善候選窗字根提示效能，純英文候選會直接跳過，不再逐字拆碼。
+- 字根提示加入候選結果快取，重複候選不再重算。
+- 長詞候選限制為 4 個中文字內才顯示字根，避免大量候選拖慢輸入。
 - 主方案新增候選窗字根提示，拼音候選會在右側顯示對應的嘸蝦米字根。
 - 新增 `rime/lua/boshiamy_comment.lua`，透過 `librime-lua` filter 讀取 openxiami 字根表並補上 candidate comment。
 - `install.sh` 會同步安裝 Lua filter 到使用者 Rime 目錄的 `lua/` 子目錄。

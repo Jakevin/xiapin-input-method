@@ -1,4 +1,5 @@
 local M = {}
+local MAX_PHRASE_CHARS = 4
 
 local function script_dir()
   local source = debug.getinfo(1, "S").source or ""
@@ -28,6 +29,11 @@ local function utf8_codepoint(char)
     return (b1 - 0xe0) * 0x1000 + (b2 - 0x80) * 0x40 + (b3 - 0x80)
   end
   return nil
+end
+
+local function is_cjk(char)
+  local cp = utf8_codepoint(char)
+  return cp and cp >= 0x3400 and cp <= 0x9fff
 end
 
 local function add_root(roots, text, code)
@@ -89,17 +95,29 @@ local function compact_codes(codes)
 end
 
 local function comment_for_text(text, roots)
+  if text:find("^[%z\1-\127]+$") then
+    return nil
+  end
+
   local chars = utf8_chars(text)
   if #chars == 0 then
+    return nil
+  elseif #chars > MAX_PHRASE_CHARS then
     return nil
   end
 
   if #chars == 1 then
+    if not is_cjk(chars[1]) then
+      return nil
+    end
     return compact_codes(roots[chars[1]])
   end
 
   local parts = {}
   for _, ch in ipairs(chars) do
+    if not is_cjk(ch) then
+      return nil
+    end
     local codes = roots[ch]
     if not codes or #codes == 0 then
       return nil
@@ -118,13 +136,19 @@ function M.init(env)
   read_lookup(dir .. "/../openxiami_TradExt.dict.yaml", roots)
 
   env.roots = roots
+  env.comment_cache = {}
 end
 
 function M.func(input, env)
   local roots = env.roots or {}
+  local cache = env.comment_cache or {}
   for cand in input:iter() do
     if cand.text and cand.text ~= "" then
-      local comment = comment_for_text(cand.text, roots)
+      local comment = cache[cand.text]
+      if comment == nil then
+        comment = comment_for_text(cand.text, roots) or false
+        cache[cand.text] = comment
+      end
       if comment and comment ~= "" then
         local target = cand.get_genuine and cand:get_genuine() or cand
         local existing = target.comment or cand.comment or ""

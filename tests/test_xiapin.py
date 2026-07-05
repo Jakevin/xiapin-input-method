@@ -48,6 +48,9 @@ class XiapinRimeTest(unittest.TestCase):
         install = (ROOT / "install.sh").read_text(encoding="utf-8")
 
         self.assertIn("function M.init(env)", lua)
+        self.assertIn("MAX_PHRASE_CHARS", lua)
+        self.assertIn("comment_cache", lua)
+        self.assertIn("^[%z\\1-\\127]+$", lua)
         self.assertIn("../xiapin_liur.dict.yaml", lua)
         self.assertIn("openxiami_TCJP.dict.yaml", lua)
         self.assertIn("openxiami_TradExt.dict.yaml", lua)

@@ -40,13 +40,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.8：
+或用指令下載 v0.1.9：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.8.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.8/xiapin-rime-v0.1.8.zip
-unzip xiapin-rime-v0.1.8.zip
-cd xiapin-rime-v0.1.8
+curl -L -o xiapin-rime-v0.1.9.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.9/xiapin-rime-v0.1.9.zip
+unzip xiapin-rime-v0.1.9.zip
+cd xiapin-rime-v0.1.9
 ```
 
 ### 3. 安裝蝦拼
