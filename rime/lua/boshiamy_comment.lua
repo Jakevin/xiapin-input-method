@@ -73,7 +73,7 @@ local function read_lookup(path, roots)
         if is_single_char and code and not code:find("[,%.]") then
           local only_char = utf8_codepoint(chars[1])
 
-          if not (only_char and only_char >= 0x3040 and only_char <= 0x30ff) then
+          if only_char and only_char >= 0x3400 and only_char <= 0x9fff then
             add_root(roots, text, code)
           end
         end

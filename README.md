@@ -1,10 +1,10 @@
 # 蝦拼輸入法
 
-蝦拼輸入法是一個給 Rime / 鼠鬚管使用的實驗性輸入方案。目標是把三種輸入習慣放在同一個方案裡：
+蝦拼輸入法是一個給 Rime / 鼠鬚管使用的實驗性輸入方案。目標是在同一套安裝裡支援三種輸入習慣：
 
 - 拼音輸入：例如 `tai` 可以出現 `台`。
 - openxiami 嘸蝦米字根：例如 `a` 可以出現 `對`，`aaa` 可以出現 `鑫`。
-- 英文候選：使用 `ryanwuson/rime-liur` 的 `easy_en.dict.yaml`，例如 `veri` 可以出現 `verify`、`verified`、`verification`。
+- 英文候選：主方案只保留少量補充英文詞，完整 `easy_en.dict.yaml` 英文詞庫放在「蝦拼英文」方案。
 - 候選窗字根提示：拼音候選會在右側顯示對應的嘸蝦米字根。
 
 字根資料改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami 碼表：
@@ -40,13 +40,13 @@ brew install --cask squirrel
 https://github.com/Jakevin/xiapin-input-method/releases
 ```
 
-或用指令下載 v0.1.9：
+或用指令下載 v0.1.10：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.9.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.9/xiapin-rime-v0.1.9.zip
-unzip xiapin-rime-v0.1.9.zip
-cd xiapin-rime-v0.1.9
+curl -L -o xiapin-rime-v0.1.10.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.10/xiapin-rime-v0.1.10.zip
+unzip xiapin-rime-v0.1.10.zip
+cd xiapin-rime-v0.1.10
 ```
 
 ### 3. 安裝蝦拼
@@ -100,7 +100,6 @@ aaa      -> 鑫
 bn       -> 人
 ix       -> 我
 hu       -> 悄 / 胡
-veri     -> verify / verified / verification
 thankyou -> thank you
 ,        -> ，
 .        -> 。
@@ -114,7 +113,7 @@ impl -> implement / implementation / implemented
 conf -> confirm / confirmed / configuration
 ```
 
-英文候選主要來自：
+完整英文候選主要來自：
 
 ```text
 rime/easy_en.dict.yaml
@@ -168,7 +167,7 @@ python3 -m unittest discover -s tests
 ```text
 rime/xiapin.schema.yaml           # 蝦拼主方案
 rime/xiapin_english.schema.yaml   # 蝦拼英文候選方案
-rime/xiapin.extended.dict.yaml    # 匯入多個字典
+rime/xiapin.extended.dict.yaml    # 匯入主方案字典
 rime/lua/boshiamy_comment.lua     # 候選窗嘸蝦米字根提示
 rime/xiapin_custom.dict.yaml      # 使用者自訂詞
 rime/xiapin_pinyin_liur.dict.yaml # 拼音表與 openxiami 字集交集產生的單字拼音表

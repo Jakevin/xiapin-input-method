@@ -80,6 +80,15 @@ lines = [
     "...",
 ]
 seen = set()
+
+
+def is_supported_cjk_text(text: str) -> bool:
+    if len(text) != 1:
+        return False
+    codepoint = ord(text)
+    return 0x3400 <= codepoint <= 0x9FFF
+
+
 for source in openxiami_sources:
     data = False
     for raw in source.read_text(encoding="utf-8-sig").splitlines():
@@ -92,7 +101,7 @@ for source in openxiami_sources:
         if len(parts) < 2:
             continue
         text, code = parts[0].strip(), parts[1].strip()
-        if any("\u3040" <= ch <= "\u30ff" for ch in text):
+        if not is_supported_cjk_text(text):
             continue
         if "," in code or "." in code:
             continue

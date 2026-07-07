@@ -38,7 +38,7 @@ class XiapinRimeTest(unittest.TestCase):
         self.assertNotIn("- xiapin_base", extended)
         self.assertIn("- xiapin_custom", extended)
         self.assertIn("- xiapin_pinyin_liur", extended)
-        self.assertIn("- easy_en", extended)
+        self.assertNotIn("- easy_en", extended)
         self.assertIn("- xiapin_English", extended)
         self.assertIn("name: xiapin_custom", custom)
         self.assertIn("thank you\tthankyou\t120", english)
@@ -73,6 +73,9 @@ class XiapinRimeTest(unittest.TestCase):
             rime_dir = Path(temp_dir)
             self.assertTrue((rime_dir / "lua" / "boshiamy_comment.lua").exists())
             self.assertTrue((rime_dir / "xiapin_liur.dict.yaml").exists())
+            generated = (rime_dir / "xiapin_liur.dict.yaml").read_text(encoding="utf-8")
+            self.assertIn("全\tbke\t9700", generated)
+            self.assertNotIn("𠇯\tbke;", generated)
 
     def test_openxiami_sources_are_bundled(self) -> None:
         tcjp = (ROOT / "rime" / "openxiami_TCJP.dict.yaml").read_text(encoding="utf-8-sig")

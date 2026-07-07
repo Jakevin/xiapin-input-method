@@ -1,16 +1,18 @@
-# 蝦拼輸入法 Rime v0.1.9
+# 蝦拼輸入法 Rime v0.1.10
 
 ## 更新內容
 
 - 改善候選窗字根提示效能，純英文候選會直接跳過，不再逐字拆碼。
 - 字根提示加入候選結果快取，重複候選不再重算。
 - 長詞候選限制為 4 個中文字內才顯示字根，避免大量候選拖慢輸入。
+- 安裝時產生的 `xiapin_liur` 只保留 U+3400–U+9FFF 的單字 CJK 候選，先排除 macOS 候選窗常顯示成方框的擴展字。
+- 主方案移除完整 `easy_en` 大詞庫，完整英文候選集中到「蝦拼英文」方案，降低主方案候選負擔。
 - 主方案新增候選窗字根提示，拼音候選會在右側顯示對應的嘸蝦米字根。
 - 新增 `rime/lua/boshiamy_comment.lua`，透過 `librime-lua` filter 讀取 openxiami 字根表並補上 candidate comment。
 - `install.sh` 會同步安裝 Lua filter 到使用者 Rime 目錄的 `lua/` 子目錄。
 - 英文候選改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 `easy_en.dict.yaml`。
 - `蝦拼英文` 方案直接使用 `easy_en` 字典，支援更完整的英文詞庫與 completion。
-- 主方案 `xiapin.extended` 也匯入 `easy_en`，並保留 `xiapin_English` 作為補充詞庫。
+- 主方案 `xiapin.extended` 保留 `xiapin_English` 作為少量補充詞庫；完整 `easy_en` 放在「蝦拼英文」方案。
 - 延續 v0.1.6 的 openxiami 字根：
   - `openxiami_TCJP.dict.yaml`
   - `openxiami_TradExt.dict.yaml`
