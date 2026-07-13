@@ -12,6 +12,10 @@
 |:---:|:---:|:---:|
 | ![pns](../docs/screenshots/android-chinese-candidates.png) | ![en](../docs/screenshots/android-english.png) | ![assoc](../docs/screenshots/android-association.png) |
 
+| 翻譯面板 | 原文→譯文 |
+|:---:|:---:|
+| ![tr](../docs/screenshots/android-translate-panel.png) | ![src](../docs/screenshots/android-translate-source.png) |
+
 
 - 拼音組詞 + 嘸蝦米字根（table_translator，字根 quality 高於拼音）
 - 單碼／前綴字根：App 層 `extraRoot` 補候選，空白／點選上屏正確字

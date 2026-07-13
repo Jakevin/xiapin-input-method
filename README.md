@@ -25,13 +25,24 @@
 
 ## 截圖（Android）
 
+### 輸入
+
 | 嘸蝦米候選 | 英文候選 | 關聯字 |
 |:---:|:---:|:---:|
 | ![字根候選 pns→你](docs/screenshots/android-chinese-candidates.png) | ![英文 hello](docs/screenshots/android-english.png) | ![關聯字](docs/screenshots/android-association.png) |
 
 - **左**：打 `pns` → 字根候選 **你**（黃色 preedit + 候選列）
-- **中**：英文模式打 `hello` → 英文詞候選（左下顯示「英」，有 Shift）
+- **中**：英文模式打 `hello` → 英文詞候選（左下「英」，有 Shift）
 - **右**：上屏後關聯字（們、的、好…）
+
+### 翻譯面板
+
+| 開啟翻譯 | 原文 + 譯文 |
+|:---:|:---:|
+| ![翻譯面板](docs/screenshots/android-translate-panel.png) | ![原文你→譯文 you](docs/screenshots/android-translate-source.png) |
+
+- **左**：點 **譯** → **自動**；目標 **→英**；原文 **EditText** + 右側 **送原文**
+- **右**：原文「你」；譯文 chip「you」（點譯文才上屏；也可點送原文送中文）
 
 完整 Android 說明見 [`android/README.md`](android/README.md)。
 

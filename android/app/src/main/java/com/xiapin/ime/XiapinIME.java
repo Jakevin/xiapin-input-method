@@ -571,6 +571,10 @@ public class XiapinIME extends InputMethodService {
             keyboardView.setLayer(0);
         }
         updateLang();
+        updateTranslateUi();
+        if (translateMode && txtTranslateSource != null) {
+            txtTranslateSource.requestFocus();
+        }
         refresh();
     }
 
