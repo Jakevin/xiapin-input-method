@@ -22,6 +22,19 @@
 
 安裝時會產生過濾後的 `xiapin_liur.dict.yaml`，並移除平假名、片假名，以及使用 `,`、`.` 的日文假名碼。
 
+
+## 截圖（Android）
+
+| 嘸蝦米候選 | 英文候選 | 關聯字 |
+|:---:|:---:|:---:|
+| ![字根候選 pns→你](docs/screenshots/android-chinese-candidates.png) | ![英文 hello](docs/screenshots/android-english.png) | ![關聯字](docs/screenshots/android-association.png) |
+
+- **左**：打 `pns` → 字根候選 **你**（黃色 preedit + 候選列）
+- **中**：英文模式打 `hello` → 英文詞候選（左下顯示「英」，有 Shift）
+- **右**：上屏後關聯字（們、的、好…）
+
+完整 Android 說明見 [`android/README.md`](android/README.md)。
+
 ## 快速安裝
 
 ### 1. 安裝鼠鬚管
