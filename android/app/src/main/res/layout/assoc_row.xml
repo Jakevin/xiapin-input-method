@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="8dp"
+    android:minHeight="48dp"
+    android:background="#121212">
+
+    <TextView
+        android:id="@+id/row_prefix"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="#FFCC00"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/row_next"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/row_count"
+        android:layout_width="72dp"
+        android:layout_height="40dp"
+        android:inputType="number"
+        android:gravity="center"
+        android:textColor="#FFFFFF"
+        android:background="#2A2A2A"
+        android:padding="4dp"
+        android:maxLines="1" />
+
+    <Button
+        android:id="@+id/row_delete"
+        android:layout_width="72dp"
+        android:layout_height="40dp"
+        android:layout_marginStart="6dp"
+        android:text="刪"
+        android:textColor="#FFFFFF"
+        android:backgroundTint="#5F2120"
+        android:textSize="13sp" />
+</LinearLayout>

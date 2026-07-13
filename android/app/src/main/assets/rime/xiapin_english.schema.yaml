@@ -1,0 +1,66 @@
+# Rime schema (Android build)
+# encoding: utf-8
+#
+# Android 版英文候選方案：對齊桌面版 xiapin_english.schema.yaml。
+
+schema:
+  schema_id: xiapin_english
+  name: "蝦拼英文"
+  version: "0.1.0-android"
+  author:
+    - "蝦拼輸入法 project"
+  description: |
+    English candidate mode for 蝦拼 (Android).
+    This is not ascii_mode; it keeps Rime candidates available for English prefixes.
+
+switches:
+  - name: full_shape
+    states: ["半形", "全形"]
+
+engine:
+  processors:
+    - recognizer
+    - key_binder
+    - speller
+    - punctuator
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - matcher
+    - abc_segmentor
+    - punct_segmentor
+    - fallback_segmentor
+  translators:
+    - punct_translator
+    - table_translator
+
+speller:
+  alphabet: "zyxwvutsrqponmlkjihgfedcbaZYXWVUTSRQPONMLKJIHGFEDCBA"
+  delimiter: " '"
+
+translator:
+  dictionary: easy_en
+  enable_sentence: true
+  enable_user_dict: false
+  enable_completion: true
+  initial_quality: 1000
+  spelling_hints: 9
+  comment_format:
+    - xform/^.+$//
+
+punctuator:
+  import_preset: default
+  half_shape:
+    ",": {commit: ","}
+    .: {commit: "."}
+
+key_binder:
+  bindings:
+    - { when: has_menu, accept: space, send: space }
+    - { when: paging, accept: comma, send: Page_Up }
+    - { when: has_menu, accept: period, send: Page_Down }
+    - { when: always, accept: Shift+space, select: xiapin }
+
+recognizer:
+  import_preset: default

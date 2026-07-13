@@ -1,11 +1,19 @@
 # 蝦拼輸入法
 
-蝦拼輸入法是一個給 Rime / 鼠鬚管使用的實驗性輸入方案。目標是在同一套安裝裡支援三種輸入習慣：
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![GitHub](https://img.shields.io/badge/GitHub-Jakevin%2Fxiapin--input--method-blue)](https://github.com/Jakevin/xiapin-input-method)
 
-- 拼音輸入：例如 `tai` 可以出現 `台`。
-- openxiami 嘸蝦米字根：例如 `a` 可以出現 `對`，`aaa` 可以出現 `鑫`。
-- 英文候選：主方案只保留少量補充英文詞，完整 `easy_en.dict.yaml` 英文詞庫放在「蝦拼英文」方案。
-- 候選窗字根提示：拼音候選會在右側顯示對應的嘸蝦米字根。
+實驗性中文輸入方案：**拼音 + 嘸蝦米字根 + 英文候選**。
+
+- **macOS**：Rime / [鼠鬚管 Squirrel](https://github.com/rime/squirrel) schema 套件
+- **Android**：獨立 IME App（NDK 自編 librime，見 [`android/`](android/)）
+
+同一套輸入習慣：
+
+- 拼音輸入：例如 `tai` → `台`
+- openxiami 嘸蝦米字根：例如 `a` → `對`，`aaa` → `鑫`，`pns` → `你`
+- 英文候選：完整 `easy_en` 在「蝦拼英文」方案
+- 候選窗字根提示：拼音候選右側顯示嘸蝦米字根
 
 字根資料改用 [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur) 的 openxiami 碼表：
 
@@ -176,10 +184,40 @@ rime/openxiami_TradExt.dict.yaml  # openxiami 擴充碼表，來源 ryanwuson/ri
 rime/easy_en.dict.yaml            # 英文候選詞庫，來源 ryanwuson/rime-liur
 rime/xiapin_English.dict.yaml     # 蝦拼英文補充詞庫
 tools/export_pinyin_liur.py       # 重新產生拼音交集字典
+android/                          # Android IME App 原始碼
 ```
 
-## 授權與資料來源
+## Android 版
 
-openxiami 與 easy_en 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。
+完整說明見 **[android/README.md](android/README.md)**。
 
-注意：截至本版整理時，該 repo 的 GitHub metadata 沒有標準 license 欄位，README 只描述「基於開源授權」。本專案保留來源標註；若上游補上明確授權，應同步更新本段說明。
+功能摘要：
+
+- 拼音 / 嘸蝦米字根（字根優先）+ 英文方案切換
+- 關聯字、使用頻率排序
+- 鍵盤內翻譯（原文 EditText；點譯文或「送原文」上屏）
+- 自建 NDK librime，不依賴 Trime APK
+
+```bash
+export RIME_BUILD_DIR=/path/to/android-rime-build   # 預編好的 librime 靜態庫
+cd android
+# 設定 local.properties 的 sdk.dir
+gradle assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+## 授權
+
+- 本專案程式碼：**[MIT License](LICENSE)**
+- 第三方字典與 librime 等：**見 [NOTICE](NOTICE)**
+
+openxiami 與 easy_en 字典來源：[ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)。  
+本專案保留來源標註；請遵守上游授權。
+
+## 貢獻
+
+Issue / PR 歡迎到：
+
+```text
+https://github.com/Jakevin/xiapin-input-method
+```

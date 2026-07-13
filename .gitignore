@@ -26,3 +26,31 @@ Thumbs.db
 *.swp
 *.swo
 
+# --- Android ---
+android/.gradle/
+android/**/build/
+android/local.properties
+android/**/local.properties
+android/.cxx/
+android/**/.cxx/
+android/captures/
+android/*.iml
+android/**/*.iml
+
+# APK / native build outputs (do not publish binaries in git)
+*.apk
+*.ap_
+*.aab
+*.dex
+*.so
+!android/app/src/**  # sources only; .so still ignored by rule above if under build
+
+# Release zips / local packages
+*.zip
+!docs/**
+
+# Secrets / machine-specific
+.env
+*.keystore
+*.jks
+**/google-services.json

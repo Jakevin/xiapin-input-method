@@ -1,0 +1,11 @@
+patch:
+  menu:
+    page_size: 7
+  schema_list:
+    - schema: xiapin
+    - schema: xiapin_english
+  switcher:
+    caption: "〔方案選單〕"
+    hotkeys:
+      - "Control+grave"
+      - "Control+Shift+grave"

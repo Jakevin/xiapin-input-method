@@ -1,0 +1,42 @@
+# Third-party notices
+
+This project includes or derives data and software from third parties.
+Their original licenses still apply to those components.
+
+## Rime / librime
+
+- Project: [rime/librime](https://github.com/rime/librime)
+- License: BSD-3-Clause (see upstream)
+
+Android builds link against librime and its dependencies (Boost, LevelDB,
+Marisa, OpenCC, yaml-cpp, glog, etc.). Build those libraries separately
+and point `RIME_BUILD_DIR` at the output when compiling the app.
+
+## openxiami / easy_en dictionary sources
+
+- Project: [ryanwuson/rime-liur](https://github.com/ryanwuson/rime-liur)
+- Used files (filtered / imported):
+  - `openxiami_TCJP.dict.yaml`
+  - `openxiami_TradExt.dict.yaml`
+  - `easy_en.dict.yaml`
+
+Please respect the license terms of the upstream dictionary project when
+redistributing modified tables.
+
+## luna_pinyin / essay
+
+Portions of pinyin tables and essay frequency data originate from the Rime
+ecosystem / Squirrel shared data. See upstream Rime packages for license terms.
+
+## Translation feature (Android)
+
+The optional on-keyboard translation UI may call public HTTP endpoints
+(unofficial Google Translate `client=gtx` and MyMemory as fallback).
+This is **not** an official Google Cloud Translation product integration.
+Network use is subject to those services' terms and availability; rate limits
+or breakage may occur. For production, prefer an official API key of your own.
+
+## Android references
+
+- Input Method Service patterns and librime NDK packaging ideas are inspired by
+  community projects such as [osfans/trime](https://github.com/osfans/trime).

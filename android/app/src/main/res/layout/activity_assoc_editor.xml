@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#121212"
+    android:padding="12dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="關聯字頻率（assoc_user.tsv）"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingBottom="4dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="前綴 + 下一字 的使用次數，次數越高關聯候選越靠前。"
+        android:textColor="#9AA0A6"
+        android:textSize="13sp"
+        android:paddingBottom="10dp" />
+
+    <!-- 新增列 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="8dp">
+
+        <EditText
+            android:id="@+id/edit_prefix"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:hint="前綴 如 台"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#666666"
+            android:background="#2A2A2A"
+            android:padding="8dp"
+            android:maxLines="1"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/edit_next"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:hint="下一字 如 北"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#666666"
+            android:background="#2A2A2A"
+            android:padding="8dp"
+            android:maxLines="1"
+            android:inputType="text" />
+
+        <EditText
+            android:id="@+id/edit_count"
+            android:layout_width="64dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="6dp"
+            android:hint="次"
+            android:text="10"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#666666"
+            android:background="#2A2A2A"
+            android:padding="8dp"
+            android:maxLines="1"
+            android:inputType="number"
+            android:gravity="center" />
+
+        <Button
+            android:id="@+id/btn_add"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:layout_marginStart="6dp"
+            android:text="新增"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#1A73E8" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingBottom="8dp">
+
+        <Button
+            android:id="@+id/btn_reload"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:text="重新載入"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#3C4043" />
+
+        <Button
+            android:id="@+id/btn_clear"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="全部清除"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#B3261E" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txt_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="#9AA0A6"
+        android:textSize="12sp"
+        android:paddingBottom="6dp" />
+
+    <!-- header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="#1E1E1E">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="前綴" android:textColor="#9AA0A6" android:textStyle="bold" />
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+            android:layout_weight="1" android:text="下一字" android:textColor="#9AA0A6" android:textStyle="bold" />
+        <TextView android:layout_width="72dp" android:layout_height="wrap_content"
+            android:text="次數" android:textColor="#9AA0A6" android:textStyle="bold" android:gravity="center" />
+        <TextView android:layout_width="72dp" android:layout_height="wrap_content"
+            android:text="" android:textColor="#9AA0A6" />
+    </LinearLayout>
+
+    <ListView
+        android:id="@+id/list"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="#2A2A2A"
+        android:dividerHeight="1dp" />
+</LinearLayout>

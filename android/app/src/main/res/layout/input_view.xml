@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#0f0f0f">
+
+    <!-- 功能列：譯 / 自動 → 英日简 -->
+    <LinearLayout
+        android:id="@+id/feature_bar"
+        android:layout_width="match_parent"
+        android:layout_height="44dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="#1a1a1a"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp">
+
+        <TextView
+            android:id="@+id/btn_translate"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:minWidth="72dp"
+            android:minHeight="40dp"
+            android:gravity="center"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:text="譯"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#E8EAED"
+            android:background="@drawable/feature_btn_bg"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btn_lang_pair"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginStart="6dp"
+            android:minWidth="52dp"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:text="→英"
+            android:textSize="13sp"
+            android:textColor="#9AA0A6"
+            android:background="@drawable/feature_btn_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/txt_translate_hint"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:gravity="center_vertical"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="12sp"
+            android:textColor="#9AA0A6"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/btn_clear_source"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:minWidth="40dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:text="清空"
+            android:textSize="12sp"
+            android:textColor="#F28B82"
+            android:background="@drawable/feature_btn_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+    </LinearLayout>
+
+    <!-- 翻譯面板：原文 EditText + 譯文 chips -->
+    <LinearLayout
+        android:id="@+id/translate_panel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#121820"
+        android:visibility="gone">
+
+        <!-- 原文：真正的 EditText 輸入框 -->
+        <LinearLayout
+            android:id="@+id/translate_source_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="48dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="原文"
+                android:textSize="11sp"
+                android:textColor="#A08040"
+                android:textStyle="bold" />
+
+            <EditText
+                android:id="@+id/txt_translate_source"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:minHeight="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/translate_edit_bg"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"
+                android:gravity="center_vertical|start"
+                android:textSize="16sp"
+                android:textColor="#FFCC00"
+                android:textColorHint="#806820"
+                android:textStyle="bold"
+                android:hint="在此輸入原文…"
+                android:singleLine="false"
+                android:maxLines="3"
+                android:inputType="textMultiLine|textNoSuggestions"
+                android:imeOptions="flagNoExtractUi|flagNoFullscreen|actionDone"
+                android:importantForAutofill="no"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:cursorVisible="true"
+                android:textCursorDrawable="@null" />
+
+            <TextView
+                android:id="@+id/btn_send_source"
+                android:layout_width="wrap_content"
+                android:layout_height="40dp"
+                android:minWidth="64dp"
+                android:layout_marginStart="8dp"
+                android:gravity="center"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:text="送原文"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#202124"
+                android:background="@drawable/feature_btn_primary"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#2a3540" />
+
+        <!-- 譯文可點選列 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="6dp"
+            android:paddingEnd="4dp">
+
+            <TextView
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="譯文"
+                android:textSize="11sp"
+                android:textColor="#5B9BFF"
+                android:textStyle="bold" />
+
+            <HorizontalScrollView
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:scrollbars="none"
+                android:fillViewport="false"
+                android:overScrollMode="never">
+
+                <LinearLayout
+                    android:id="@+id/translate_result_row"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingEnd="8dp" />
+            </HorizontalScrollView>
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#2a2a2a" />
+
+    <com.xiapin.ime.CandidateView
+        android:id="@+id/candidates"
+        android:layout_width="match_parent"
+        android:layout_height="74dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#2a2a2a" />
+
+    <com.xiapin.ime.XiapinKeyboardView
+        android:id="@+id/keyboard"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:keyBackground="@drawable/key_bg_selector"
+        android:keyTextColor="#f2f2f2"
+        android:keyTextSize="20sp"
+        android:background="#1c1c1c"
+        android:paddingTop="10dp"
+        android:paddingBottom="12dp"
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:shadowRadius="0"
+        android:shadowColor="#00000000" />
+</LinearLayout>

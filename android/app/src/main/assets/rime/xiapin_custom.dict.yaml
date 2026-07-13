@@ -1,0 +1,21 @@
+# Rime dictionary
+# encoding: utf-8
+#
+# 個人/常用詞。格式：text<Tab>code<Tab>weight
+# table_translator 會合併進 xiapin.extended
+
+---
+name: xiapin_custom
+version: "0.1.1"
+sort: by_weight
+...
+
+# 地區用字
+台	tai	9990
+臺	tai	9980
+模範	mofan	9900
+
+# 嘸蝦米詞碼：單字恭=rbf、喜=ydo 有；整詞「恭喜」需 gxi
+恭喜	gxi	9990
+恭喜你	gxin	9980
+恭喜發財	gxif	9970

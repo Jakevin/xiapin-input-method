@@ -1,0 +1,15 @@
+# 僅用於預編 luna_pinyin 字典（拼音），不加入用戶可切換的 schema_list。
+schema:
+  schema_id: luna_pinyin_build
+  name: "拼音預編"
+  version: "0.1.0"
+
+engine:
+  translators:
+    - table_translator
+
+translator:
+  dictionary: luna_pinyin
+  enable_completion: true
+  enable_user_dict: false
+  initial_quality: 100

@@ -1,0 +1,13 @@
+# Rime dictionary
+# encoding: utf-8
+
+---
+name: xiapin.extended
+version: "0.1.0"
+sort: by_weight
+import_tables:
+  - xiapin_custom
+  - xiapin_pinyin_liur
+  - xiapin_liur
+  - xiapin_English
+...

@@ -1,0 +1,10 @@
+# Android app .gitignore (extra safety; root .gitignore also covers these)
+/.gradle/
+/**/build/
+/local.properties
+/**/.cxx/
+/captures/
+*.iml
+.DS_Store
+*.apk
+*.aab
