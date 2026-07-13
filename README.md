@@ -45,17 +45,28 @@ brew install --cask squirrel
 到 GitHub Releases 下載最新版：
 
 ```text
-https://github.com/Jakevin/xiapin-input-method/releases
+https://github.com/Jakevin/xiapin-input-method/releases/latest
 ```
 
-或用指令下載 v0.1.10：
+| 檔案 | 用途 |
+|------|------|
+| `xiapin-rime-v*.zip` | **macOS** 鼠鬚管：解壓後 `bash install.sh` |
+| `xiapin-android-v*.apk` | **Android**：直接安裝（啟用「蝦拼」輸入法） |
+
+或用指令下載（版本號請改成最新）：
 
 ```bash
-curl -L -o xiapin-rime-v0.1.10.zip \
-  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.10/xiapin-rime-v0.1.10.zip
-unzip xiapin-rime-v0.1.10.zip
-cd xiapin-rime-v0.1.10
+# macOS Rime
+curl -L -o xiapin-rime-v0.1.11.zip \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.11/xiapin-rime-v0.1.11.zip
+unzip xiapin-rime-v0.1.11.zip && cd xiapin-rime-v0.1.11
+
+# Android APK
+curl -L -o xiapin-android-v0.1.11.apk \
+  https://github.com/Jakevin/xiapin-input-method/releases/download/v0.1.11/xiapin-android-v0.1.11.apk
 ```
+
+維護者如何發佈含 APK 的 Release：見 [docs/PUBLISH_RELEASE.md](docs/PUBLISH_RELEASE.md)。
 
 ### 3. 安裝蝦拼
 
