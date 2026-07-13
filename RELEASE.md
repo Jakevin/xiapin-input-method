@@ -1,4 +1,4 @@
-# 蝦拼輸入法 v0.1.11
+# 蝦拼輸入法 v0.1.12
 
 macOS（Rime）+ Android 雙平台 release。
 
@@ -8,67 +8,35 @@ macOS（Rime）+ Android 雙平台 release。
 
 | 檔案 | 平台 | 說明 |
 |------|------|------|
-| `xiapin-rime-v0.1.11.zip` | macOS 鼠鬚管 | 解壓後執行 `bash install.sh` |
-| `xiapin-android-v0.1.11.apk` | Android | 直接安裝（需允許未知來源） |
-
-Release 頁面：
+| `xiapin-rime-v0.1.12.zip` | macOS 鼠鬚管 | 解壓後 `bash install.sh` |
+| `xiapin-android-v0.1.12.apk` | Android | 直接安裝（允許未知來源） |
 
 ```text
-https://github.com/Jakevin/xiapin-input-method/releases
+https://github.com/Jakevin/xiapin-input-method/releases/latest
 ```
 
 ## Android 安裝
 
-1. 下載 `xiapin-android-v0.1.11.apk`
-2. 傳到手機後點開安裝（設定 → 允許此來源安裝）
-3. **設定 → 系統 → 語言與輸入 → 螢幕鍵盤 → 管理鍵盤** → 啟用「蝦拼」
-4. 在輸入框切換成「蝦拼」
+1. 下載 `xiapin-android-v0.1.12.apk` 並安裝
+2. **設定 → 系統 → 語言與輸入 → 管理鍵盤** → 啟用「蝦拼」
+3. 輸入框切換成「蝦拼」
 
-### 功能摘要（Android）
+## 本版變更（v0.1.12）
 
-- 拼音 + 嘸蝦米字根（字根優先）
-- 英文方案切換（左下「中／英」）
-- 關聯字、使用頻率
-- 翻譯模式：原文 EditText；**送原文** / 點譯文上屏
-- 英文 Shift 三態（全小寫 / 首字大寫 ⇪ / 全大寫藍底）
+### Android
 
-> 此 APK 為 debug 簽名，供測試；正式上架需自行 release 簽名。
-
-## macOS 安裝
-
-### 1. 安裝鼠鬚管
-
-```bash
-brew install --cask squirrel
-```
-
-系統設定 → 鍵盤 → 文字輸入 → 加入鼠鬚管。
-
-### 2. 安裝蝦拼
-
-```bash
-unzip xiapin-rime-v0.1.11.zip
-cd xiapin-rime-v0.1.11
-bash install.sh
-```
-
-鼠鬚管選單 → 重新部署。
-
-## 本版變更
-
-### Android（首發進 Release）
-
-- 開源完整 Android IME 原始碼（`android/`）
-- 翻譯 UI：原文 EditText、送原文按鈕（框右側）、譯文點選上屏
-- 空白鍵修正：避免雙重上屏候選
-- 游標位置插入原文（不強制跳到最後）
-- 關閉翻譯時 flush 原文，避免文字消失
+- **拼音候選依使用頻次自動排序**（同一輸入碼優先）：例如常選 `guan`→罐，之後「罐」會排前
+- 頻率同時記錄：碼層（`@code`）+ 全域字/詞
+- 翻譯面板 UX：原文 **EditText**、右側 **送原文**、點譯文才上屏；關翻譯不丟原文
+- 空白鍵修正：避免選字後又多吐一個候選
+- 原文游標：插入位置尊重游標，不再強制跳到最後
+- README 新增截圖（字根 / 英文 / 關聯 / 翻譯）
 
 ### 桌面 Rime
 
-- 延續 v0.1.10 功能與碼表
+- 延續既有 schema 與碼表
 
 ## 授權
 
 - 程式碼：MIT
-- 字典與第三方：見倉庫 `NOTICE`
+- 第三方：見倉庫 `NOTICE`

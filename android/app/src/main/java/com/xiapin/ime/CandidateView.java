@@ -345,17 +345,18 @@ public class CandidateView extends FrameLayout {
         }
         candidateRow.setWeightSum(0f);
 
-        // 依個人使用頻率重排（常用越前）；穩定排序保留原相對序
+        // 依個人使用頻率重排（拼音碼層 + 全域）；穩定排序保留原相對序
         List<RimeJNI.Candidate> ordered = new ArrayList<>(cands);
         if (!englishMode && service != null && service.getCharUsage() != null) {
             final CharUsageFreq freq = service.getCharUsage();
+            final String code = CharUsageFreq.normalizeCode(preedit);
             Collections.sort(ordered, new Comparator<RimeJNI.Candidate>() {
                 @Override
                 public int compare(RimeJNI.Candidate a, RimeJNI.Candidate b) {
                     String ta = a != null ? a.text : null;
                     String tb = b != null ? b.text : null;
-                    int sa = freq.scoreForCandidate(ta);
-                    int sb = freq.scoreForCandidate(tb);
+                    int sa = freq.scoreForCandidate(ta, code);
+                    int sb = freq.scoreForCandidate(tb, code);
                     return Integer.compare(sb, sa);
                 }
             });

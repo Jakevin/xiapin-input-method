@@ -35,6 +35,8 @@ public class XiapinIME extends InputMethodService {
     private CharUsageFreq charUsage;
     /** 目前畫面上候選順序（重排後），空白上屏用第 0 個 */
     private java.util.List<String> displayCandidates = new java.util.ArrayList<>();
+    /** 最近一次組字碼（空白/上屏前），供頻率學習 */
+    private String lastCompositionCode = "";
 
     // ---- 翻譯（Gboard 風格）----
     private boolean translateMode = false;
@@ -734,6 +736,10 @@ public class XiapinIME extends InputMethodService {
                 return true; // 不自動送譯文
             }
         }
+        // 上屏前保留組字碼（processKey 後 preedit 可能已清空）
+        if (hasPreedit()) {
+            lastCompositionCode = currentInputCode();
+        }
         boolean handled = rime.processKey(keycode, mask);
         refresh();
         return handled;
@@ -832,6 +838,11 @@ public class XiapinIME extends InputMethodService {
      */
     public void commitCandidateText(String text) {
         if (text == null || text.isEmpty()) return;
+        // 先記下輸入碼（清組字前），供拼音頻率學習
+        String code = currentInputCode();
+        if (charUsage != null) {
+            charUsage.recordSelection(code, text);
+        }
         boolean inTranslate = handleTranslateCommit(text);
         if (!inTranslate) {
             // 非翻譯：正常上屏
@@ -839,7 +850,7 @@ public class XiapinIME extends InputMethodService {
             if (ic != null) ic.commitText(text, 1);
             onChineseCommitted(text);
         } else {
-            // 翻譯模式：原文進 EditText，不進 App、不走關聯
+            // 翻譯模式：原文進 EditText；頻率已記
         }
         // 清組字 + 排空 Rime 殘留 commit，避免空白後又吐出下一個候選
         if (rime != null) {
@@ -960,10 +971,8 @@ public class XiapinIME extends InputMethodService {
             clearAssociations();
             return;
         }
-        // 個人用字頻率（拼音/字根上屏都算）
-        if (charUsage != null) {
-            charUsage.recordCommitted(text);
-        }
+        // 頻率已在 commitCandidateText 用輸入碼記錄；此處僅補「Rime 直接 commit」路徑
+        // （無 preedit code 時仍記全域）
         // 抽出 CJK 接到 context
         StringBuilder sb = new StringBuilder(commitContext == null ? "" : commitContext);
         for (int i = 0; i < text.length(); ) {
@@ -995,14 +1004,30 @@ public class XiapinIME extends InputMethodService {
         return ctx != null && ctx.preedit != null && !ctx.preedit.isEmpty();
     }
 
+    /** 目前組字碼（小寫、無空格），供頻率學習 / 排序 */
+    private String currentInputCode() {
+        try {
+            RimeJNI.Context ctx = rime != null ? rime.getContext() : null;
+            if (ctx != null && ctx.preedit != null) {
+                return CharUsageFreq.normalizeCode(ctx.preedit);
+            }
+        } catch (Exception ignored) {}
+        return "";
+    }
+
     void refresh() {
         String committed = rime.getCommitText();
         if (committed != null && !committed.isEmpty()) {
+            // Rime 直接上屏：用上屏前記住的碼做頻率
+            if (charUsage != null) {
+                charUsage.recordSelection(lastCompositionCode, committed);
+            }
             commitText(committed);
             // 翻譯模式不跑關聯字，避免蓋掉譯文候選
             if (!translateMode) {
                 onChineseCommitted(committed);
             }
+            lastCompositionCode = "";
         }
         RimeJNI.Context ctx = rime.getContext();
         if (candidateView != null) {
