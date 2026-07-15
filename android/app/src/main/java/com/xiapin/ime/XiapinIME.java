@@ -651,29 +651,116 @@ public class XiapinIME extends InputMethodService {
      * 鍵盤把一個字母/符號送進 Rime。
      * @return Rime 是否處理了這個鍵
      */
-    public boolean sendKey(int keycode, int mask) {
-        // 翻譯模式：無組字時退格只改 EditText / buffer（不碰 App）
-        if (keycode == 0xff08 && translateMode && !hasPreedit()) {
-            if (translateSource != null && !translateSource.isEmpty()) {
-                int endLen = translateSource.length();
-                int cp = Character.codePointBefore(translateSource, endLen);
-                int cut = endLen - Character.charCount(cp);
-                translateSource = translateSource.substring(0, Math.max(0, cut));
-                setSourceEditText(translateSource, true);
-                if (translateSource.isEmpty()) {
-                    translateResult = "";
-                    translateOptions = new java.util.ArrayList<>();
-                    cancelPendingTranslate();
-                    renderTranslateResults();
-                    updateTranslateUi();
-                    refresh();
-                } else {
-                    updateTranslateUi();
-                    scheduleTranslate(translateSource);
-                }
+
+    /**
+     * 翻譯原文 EditText 刪一個字（或選取區間）。
+     * @return true 若有刪到內容；false 表示原文為空
+     */
+    private boolean deleteTranslateSourceChar() {
+        if (txtTranslateSource == null) {
+            if (translateSource == null || translateSource.isEmpty()) return false;
+            int endLen = translateSource.length();
+            int cp = Character.codePointBefore(translateSource, endLen);
+            int cut = endLen - Character.charCount(cp);
+            translateSource = translateSource.substring(0, Math.max(0, cut));
+            afterTranslateSourceDeleted();
+            return true;
+        }
+        android.text.Editable e = txtTranslateSource.getText();
+        if (e == null || e.length() == 0) {
+            translateSource = "";
+            return false;
+        }
+        int start = txtTranslateSource.getSelectionStart();
+        int end = txtTranslateSource.getSelectionEnd();
+        if (start < 0) start = e.length();
+        if (end < 0) end = start;
+        if (start > end) {
+            int tmp = start;
+            start = end;
+            end = tmp;
+        }
+        suppressSourceWatch = true;
+        try {
+            if (start != end) {
+                e.delete(start, end);
+                txtTranslateSource.setSelection(start);
+            } else if (start > 0) {
+                int cp = Character.codePointBefore(e, start);
+                int cut = Character.charCount(cp);
+                e.delete(start - cut, start);
+                txtTranslateSource.setSelection(start - cut);
+            } else {
+                // 游標在開頭且無選取
+                return false;
+            }
+            translateSource = e.toString();
+        } finally {
+            suppressSourceWatch = false;
+        }
+        afterTranslateSourceDeleted();
+        return true;
+    }
+
+    private void afterTranslateSourceDeleted() {
+        if (translateSource == null) translateSource = "";
+        if (translateSource.isEmpty()) {
+            translateResult = "";
+            translateOptions = new java.util.ArrayList<>();
+            cancelPendingTranslate();
+            renderTranslateResults();
+            updateTranslateUi();
+            if (candidateView != null && rime != null) candidateView.update(rime.getContext());
+        } else {
+            updateTranslateUi();
+            scheduleTranslate(translateSource);
+        }
+    }
+
+    /** 刪 App 輸入框前一個字元；長按可連續觸發 */
+    private boolean deleteAppChar() {
+        InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return false;
+        try {
+            CharSequence before = ic.getTextBeforeCursor(2, 0);
+            if (before != null && before.length() > 0) {
+                int n = Character.charCount(Character.codePointBefore(before, before.length()));
+                ic.deleteSurroundingText(n, 0);
                 return true;
             }
-            return true; // 無原文時吞掉，避免誤刪 App
+            sendDownUpKey(android.view.KeyEvent.KEYCODE_DEL);
+            return true;
+        } catch (Exception e) {
+            try {
+                sendDownUpKey(android.view.KeyEvent.KEYCODE_DEL);
+                return true;
+            } catch (Exception ignored) {
+                return false;
+            }
+        }
+    }
+
+    public boolean sendKey(int keycode, int mask) {
+        // 退格 ⌫
+        if (keycode == 0xff08) {
+            // 1) 組字中：交給 Rime
+            if (hasPreedit()) {
+                lastCompositionCode = currentInputCode();
+                boolean handled = rime.processKey(0xff08, mask);
+                refresh();
+                return handled;
+            }
+            // 2) 翻譯模式：有原文 → 刪 EditText（尊重游標）；無原文 → 刪 App
+            if (translateMode) {
+                if (deleteTranslateSourceChar()) {
+                    return true;
+                }
+                // 原文空：直接刪 App 輸入框（可連按／長按）
+                return deleteAppChar();
+            }
+            // 3) 一般模式無組字：刪 App（可連按／長按）
+            clearAssociations();
+            return deleteAppChar();
         }
         // 開始打字母 → 清關聯；翻譯模式先讓出候選列給組字
         if (keycode >= 'a' && keycode <= 'z') {

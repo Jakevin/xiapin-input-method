@@ -216,8 +216,8 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
                 cycleShift();
                 return;
             case -5: {
-                boolean handled = service.sendKey(0xff08, 0);
-                if (!handled) service.sendDownUpKey(android.view.KeyEvent.KEYCODE_DEL);
+                // isRepeatable=true 時會連續觸發 onKey；sendKey 內處理原文/App 刪除
+                service.sendKey(0xff08, 0);
                 return;
             }
             case -4: {
