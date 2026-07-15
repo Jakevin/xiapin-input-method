@@ -6,6 +6,7 @@
 實驗性中文輸入方案：**拼音 + 嘸蝦米字根 + 英文候選**。
 
 - **macOS**：Rime / [鼠鬚管 Squirrel](https://github.com/rime/squirrel) schema 套件
+- **Windows**：Rime / [小狼毫 Weasel](https://github.com/rime/weasel) schema 套件
 - **Android**：獨立 IME App（NDK 自編 librime，見 [`android/`](android/)）
 
 同一套輸入習慣：
@@ -75,6 +76,7 @@ https://github.com/Jakevin/xiapin-input-method/releases/latest
 | 檔案 | 用途 |
 |------|------|
 | `xiapin-rime-v*.zip` | **macOS** 鼠鬚管：解壓後 `bash install.sh` |
+| `xiapin-windows-v*.zip` | **Windows** 小狼毫：解壓後雙擊 `install-windows.cmd` |
 | `xiapin-android-v*.apk` | **Android**：直接安裝（啟用「蝦拼」輸入法） |
 
 或用指令下載（版本號請改成最新）：
@@ -99,6 +101,8 @@ bash install.sh
 ```
 
 接著從 macOS 右上角鼠鬚管選單按「重新部署」。
+
+Windows 請先安裝小狼毫，解壓 Windows ZIP 後雙擊 `install-windows.cmd`。安裝器不需管理員權限，會安裝到 `%APPDATA%\Rime` 或小狼毫的自訂資料夾，完成後自動重新部署。詳見 [`docs/WINDOWS.md`](docs/WINDOWS.md)。
 
 方案選單可用：
 

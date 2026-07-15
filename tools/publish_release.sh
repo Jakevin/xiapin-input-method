@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 發佈 GitHub Release：Rime zip + Android APK
+# 發佈 GitHub Release：macOS Rime zip + Windows Rime zip + Android APK
 # 用法：bash tools/publish_release.sh v0.1.12
 set -euo pipefail
 
@@ -14,6 +14,7 @@ fi
 
 REPO="${GITHUB_REPOSITORY:-Jakevin/xiapin-input-method}"
 RIME_ZIP="xiapin-rime-${TAG}.zip"
+WINDOWS_ZIP="xiapin-windows-${TAG}.zip"
 APK_OUT="xiapin-android-${TAG}.apk"
 APK_SRC_DEFAULT="android/app/build/outputs/apk/debug/app-debug.apk"
 APK_SRC="${APK_SRC:-$APK_SRC_DEFAULT}"
@@ -36,6 +37,18 @@ cp -R rime "dist/${PKG}/"
 chmod +x "dist/${PKG}/install.sh"
 (cd dist && zip -r "${RIME_ZIP}" "${PKG}" >/dev/null)
 echo "==> Built dist/${RIME_ZIP}"
+
+# --- Package Windows zip ---
+WIN_PKG="xiapin-windows-${TAG}"
+rm -rf "dist/${WIN_PKG}" "dist/${WINDOWS_ZIP}"
+mkdir -p "dist/${WIN_PKG}/docs"
+cp README.md RELEASE.md install-windows.ps1 install-windows.cmd "dist/${WIN_PKG}/"
+[[ -f LICENSE ]] && cp LICENSE "dist/${WIN_PKG}/"
+[[ -f NOTICE ]] && cp NOTICE "dist/${WIN_PKG}/"
+cp docs/WINDOWS.md "dist/${WIN_PKG}/docs/"
+cp -R rime "dist/${WIN_PKG}/"
+(cd dist && zip -r "${WINDOWS_ZIP}" "${WIN_PKG}" >/dev/null)
+echo "==> Built dist/${WINDOWS_ZIP}"
 
 # --- APK ---
 if [[ ! -f "$APK_SRC" ]]; then
@@ -63,6 +76,7 @@ fi
 if ! command -v gh >/dev/null; then
   echo "需要 gh CLI。已備好檔案："
   echo "  dist/${RIME_ZIP}"
+  echo "  dist/${WINDOWS_ZIP}"
   echo "  ${APK_OUT}"
   exit 0
 fi
@@ -71,6 +85,7 @@ if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
   echo "==> Release 已存在，上傳／覆蓋 assets"
   gh release upload "$TAG" \
     "dist/${RIME_ZIP}" \
+    "dist/${WINDOWS_ZIP}" \
     "$APK_OUT" \
     --repo "$REPO" \
     --clobber
@@ -80,6 +95,7 @@ else
   [[ -f "$NOTES" ]] || NOTES="/dev/null"
   gh release create "$TAG" \
     "dist/${RIME_ZIP}" \
+    "dist/${WINDOWS_ZIP}" \
     "$APK_OUT" \
     --repo "$REPO" \
     --title "蝦拼輸入法 ${TAG}" \
@@ -89,4 +105,5 @@ fi
 echo ""
 echo "完成: https://github.com/${REPO}/releases/tag/${TAG}"
 echo "  - ${RIME_ZIP}"
+echo "  - ${WINDOWS_ZIP}"
 echo "  - ${APK_OUT}"

@@ -1,6 +1,6 @@
 # 如何發佈 Release（含 Android APK）
 
-GitHub Actions 在 **打 tag `v*`** 時會自動打包 **macOS Rime zip** 並建立 Release。  
+GitHub Actions 在 **打 tag `v*`** 時會自動打包 **macOS Rime zip** 與 **Windows Rime zip** 並建立 Release。
 **Android APK** 因需要本機預編的 librime（`RIME_BUILD_DIR`），目前採 **本機組建後上傳**。
 
 ## 方式 A：本機一鍵（推薦）
@@ -20,7 +20,7 @@ bash tools/publish_release.sh v0.1.12
 腳本會：
 
 1. 確認工作目錄乾淨（或提示你先 commit）
-2. 打包 `xiapin-rime-<tag>.zip`
+2. 打包 `xiapin-rime-<tag>.zip` 與 `xiapin-windows-<tag>.zip`
 3. 複製 `xiapin-android-<tag>.apk`
 4. `git tag` + `git push --tags`（觸發 CI 亦可）
 5. `gh release create` 並附上 zip + apk
@@ -57,6 +57,7 @@ https://github.com/Jakevin/xiapin-input-method/releases/latest
 Assets 應包含：
 
 - `xiapin-rime-vX.Y.Z.zip` — macOS
+- `xiapin-windows-vX.Y.Z.zip` — Windows 小狼毫
 - `xiapin-android-vX.Y.Z.apk` — Android
 
 ## 注意

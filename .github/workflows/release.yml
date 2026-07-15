@@ -9,9 +9,30 @@ permissions:
   contents: write
 
 jobs:
+  windows-validate:
+    name: Validate Windows installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install into a temporary Rime directory
+        shell: powershell
+        run: |
+          $target = Join-Path $env:RUNNER_TEMP "xiapin-rime"
+          .\install-windows.ps1 -RimeUserDir $target -NoDeploy
+          if (-not (Test-Path (Join-Path $target "xiapin_liur.dict.yaml"))) {
+            throw "Generated xiapin_liur.dict.yaml is missing."
+          }
+          if (-not (Select-String -LiteralPath (Join-Path $target "default.custom.yaml") -SimpleMatch "- schema: xiapin_english")) {
+            throw "xiapin_english was not added to default.custom.yaml."
+          }
+
   release:
     name: Build release zip
     runs-on: ubuntu-latest
+    needs: windows-validate
 
     steps:
       - name: Checkout
@@ -21,6 +42,8 @@ jobs:
         run: |
           python3 -m unittest discover -s tests
           bash -n install.sh
+          pwsh -NoLogo -NoProfile -File ./install-windows.ps1 \
+            -RimeUserDir "$RUNNER_TEMP/xiapin-rime" -NoDeploy
 
       - name: Package
         id: package
@@ -31,6 +54,8 @@ jobs:
           tag="${GITHUB_REF_NAME}"
           package="xiapin-rime-${tag}"
           asset="${package}.zip"
+          windows_package="xiapin-windows-${tag}"
+          windows_asset="${windows_package}.zip"
 
           mkdir -p "dist/${package}"
           cp README.md RELEASE.md install.sh "dist/${package}/"
@@ -39,7 +64,15 @@ jobs:
           chmod +x "dist/${package}/install.sh"
           (cd dist && zip -r "${asset}" "${package}")
 
+          mkdir -p "dist/${windows_package}/docs"
+          cp README.md RELEASE.md LICENSE NOTICE install-windows.ps1 install-windows.cmd \
+            "dist/${windows_package}/"
+          cp docs/WINDOWS.md "dist/${windows_package}/docs/"
+          cp -R rime "dist/${windows_package}/"
+          (cd dist && zip -r "${windows_asset}" "${windows_package}")
+
           echo "asset=dist/${asset}" >> "$GITHUB_OUTPUT"
+          echo "windows_asset=dist/${windows_asset}" >> "$GITHUB_OUTPUT"
           echo "title=蝦拼輸入法 Rime ${tag}" >> "$GITHUB_OUTPUT"
 
       - name: Publish release
@@ -48,6 +81,7 @@ jobs:
         run: |
           gh release create "${GITHUB_REF_NAME}" \
             "${{ steps.package.outputs.asset }}" \
+            "${{ steps.package.outputs.windows_asset }}" \
             --repo "${GITHUB_REPOSITORY}" \
             --title "${{ steps.package.outputs.title }}" \
             --notes-file RELEASE.md

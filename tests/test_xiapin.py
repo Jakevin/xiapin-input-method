@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -56,6 +57,62 @@ class XiapinRimeTest(unittest.TestCase):
         self.assertIn("openxiami_TradExt.dict.yaml", lua)
         self.assertIn("mkdir -p \"$RIME_DIR/lua\"", install)
         self.assertIn("copy_file \"$ROOT/rime/lua/boshiamy_comment.lua\"", install)
+
+    def test_windows_installer_contains_user_scoped_weasel_flow(self) -> None:
+        installer = (ROOT / "install-windows.ps1").read_text(encoding="utf-8")
+        launcher = (ROOT / "install-windows.cmd").read_text(encoding="utf-8")
+
+        self.assertIn('"HKCU:\\Software\\Rime\\Weasel"', installer)
+        self.assertIn('Join-Path $env:APPDATA "Rime"', installer)
+        self.assertIn("WeaselDeployer.exe", installer)
+        self.assertIn("& $deployer /deploy", installer)
+        self.assertIn("Build-XiapinLiurDictionary", installer)
+        self.assertIn("System.Text.UTF8Encoding($false)", installer)
+        self.assertNotIn("Start-Process", installer)
+        self.assertIn("-ExecutionPolicy Bypass", launcher)
+
+    def test_windows_installer_runs_when_pwsh_is_available(self) -> None:
+        pwsh = shutil.which("pwsh")
+        if not pwsh:
+            self.skipTest("PowerShell is not available on this host")
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            default_custom_path = Path(temp_dir) / "default.custom.yaml"
+            default_custom_path.write_text(
+                "patch:\n"
+                "  menu:\n"
+                "    page_size: 9\n"
+                "  schema_list:\n"
+                "    - schema: luna_pinyin\n"
+                "  switcher:\n"
+                "    caption: keep-me\n",
+                encoding="utf-8",
+            )
+            subprocess.run(
+                [
+                    pwsh,
+                    "-NoLogo",
+                    "-NoProfile",
+                    "-File",
+                    str(ROOT / "install-windows.ps1"),
+                    "-RimeUserDir",
+                    temp_dir,
+                    "-NoDeploy",
+                ],
+                cwd=ROOT,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            generated = (Path(temp_dir) / "xiapin_liur.dict.yaml").read_text(encoding="utf-8")
+            default_custom = (Path(temp_dir) / "default.custom.yaml").read_text(encoding="utf-8")
+            self.assertIn("全\tbke\t9700", generated)
+            self.assertNotIn("𠷯\tbke;", generated)
+            self.assertIn("- schema: luna_pinyin", default_custom)
+            self.assertIn("- schema: xiapin", default_custom)
+            self.assertIn("- schema: xiapin_english", default_custom)
+            self.assertIn("caption: keep-me", default_custom)
+            self.assertTrue(list(Path(temp_dir).glob("default.custom.yaml.bak.*")))
 
     def test_install_places_lua_filter_next_to_generated_lookup(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

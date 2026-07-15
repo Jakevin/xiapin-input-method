@@ -1,12 +1,13 @@
 # 蝦拼輸入法 v0.1.13
 
-macOS（Rime）+ Android 雙平台 release。
+macOS（Rime）+ Windows（Rime/小狼毫）+ Android 三平台 release。
 
 ## 下載
 
 | 檔案 | 平台 |
 |------|------|
 | `xiapin-rime-v0.1.13.zip` | macOS 鼠鬚管 |
+| `xiapin-windows-v0.1.13.zip` | Windows 小狼毫 |
 | `xiapin-android-v0.1.13.apk` | Android |
 
 ```text
