@@ -740,6 +740,57 @@ public class XiapinIME extends InputMethodService {
         }
     }
 
+
+    /**
+     * 組字中按 Enter：把目前 preedit 原文（拉丁碼）上屏，並徹底清狀態。
+     * 例：打 meta + Enter → 送出 "meta"，不會留下中文候選讓下一個空白誤選。
+     */
+    private void commitRawCompositionAsLatin() {
+        String raw = "";
+        try {
+            RimeJNI.Context ctx = rime != null ? rime.getContext() : null;
+            if (ctx != null && ctx.preedit != null) {
+                raw = ctx.preedit.replace(" ", "").replace("'", "");
+            }
+        } catch (Exception ignored) {}
+        if (raw.isEmpty()) {
+            raw = currentInputCode();
+        }
+        hardClearComposition();
+        if (!raw.isEmpty()) {
+            if (handleTranslateCommit(raw)) {
+                // 翻譯模式已寫入 EditText
+            } else {
+                InputConnection ic = getCurrentInputConnection();
+                if (ic != null) ic.commitText(raw, 1);
+            }
+            clearAssociations();
+        }
+        updateLang();
+        if (candidateView != null && rime != null) {
+            candidateView.update(rime.getContext());
+        }
+        if (translateMode) updateTranslateUi();
+    }
+
+    /** 徹底清空 Rime 組字、殘留 commit、App 層候選/字根 */
+    private void hardClearComposition() {
+        extraRootCandidate = null;
+        displayCandidates = new java.util.ArrayList<>();
+        lastCompositionCode = "";
+        if (rime != null) {
+            try {
+                rime.clearComposition();
+            } catch (Exception ignored) {}
+            drainCommitText();
+            try {
+                rime.clearComposition();
+            } catch (Exception ignored) {}
+            drainCommitText();
+        }
+        clearAssociations();
+    }
+
     public boolean sendKey(int keycode, int mask) {
         // 退格 ⌫
         if (keycode == 0xff08) {
@@ -769,9 +820,9 @@ public class XiapinIME extends InputMethodService {
         }
         // 空白鍵：只走「選候選」或「輸出空格」其中一條，絕不雙重上屏
         if (keycode == ' ') {
+            // 注意：無 preedit 時不可只靠 displayCandidates（Enter 送出英文後可能殘留）
             boolean composing = hasPreedit()
-                    || (extraRootCandidate != null && !isEnglishMode())
-                    || (displayCandidates != null && !displayCandidates.isEmpty());
+                    || (extraRootCandidate != null && !isEnglishMode() && hasPreedit());
 
             // 翻譯模式 + 完全沒在組字 → 空白寫進原文 EditText
             if (translateMode && !composing) {
@@ -809,8 +860,9 @@ public class XiapinIME extends InputMethodService {
             if (candidateView != null) candidateView.update(rime.getContext());
             return true;
         }
-        // Enter：翻譯模式下送「原文」（不送譯文）；有組字時先不處理
+        // Enter
         if (keycode == 0xff0d || keycode == '\n') {
+            // 翻譯模式（無組字）：送原文
             if (translateMode && !hasPreedit()) {
                 String src = translateSource == null ? "" : translateSource.trim();
                 if (!src.isEmpty()) {
@@ -819,9 +871,20 @@ public class XiapinIME extends InputMethodService {
                 }
                 return true; // 無原文也吞掉，避免誤送
             }
-            if (isShowingTranslateOptions()) {
+            if (isShowingTranslateOptions() && !hasPreedit()) {
                 return true; // 不自動送譯文
             }
+            // 組字中按 Enter：上屏「原文碼」（如 meta），並徹底清空 Rime/候選，
+            // 避免之後按空白又選到殘留中文候選
+            if (hasPreedit() || (extraRootCandidate != null && !isEnglishMode())
+                    || (displayCandidates != null && !displayCandidates.isEmpty() && hasPreedit())) {
+                commitRawCompositionAsLatin();
+                return true;
+            }
+            // 無組字：把 Enter 送給 App
+            clearAssociations();
+            sendDownUpKey(android.view.KeyEvent.KEYCODE_ENTER);
+            return true;
         }
         // 上屏前保留組字碼（processKey 後 preedit 可能已清空）
         if (hasPreedit()) {

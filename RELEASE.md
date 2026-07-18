@@ -1,32 +1,23 @@
-# 蝦拼輸入法 v0.1.13
-
-macOS（Rime）+ Windows（Rime/小狼毫）+ Android 三平台 release。
+# 蝦拼輸入法 v0.1.14
 
 ## 下載
 
 | 檔案 | 平台 |
 |------|------|
-| `xiapin-rime-v0.1.13.zip` | macOS 鼠鬚管 |
-| `xiapin-windows-v0.1.13.zip` | Windows 小狼毫 |
-| `xiapin-android-v0.1.13.apk` | Android |
+| `xiapin-rime-v0.1.14.zip` | macOS |
+| `xiapin-android-v0.1.14.apk` | Android |
 
-```text
 https://github.com/Jakevin/xiapin-input-method/releases/latest
-```
 
-## 本版變更（v0.1.13）
+## 本版變更
 
 ### Android
 
-- **翻譯模式原文為空時**，⌫ 會直接刪 App 輸入框（不再吞掉）
-- **按住 ⌫** 可連續刪除（原文 EditText 或 App 欄位）
-- 翻譯原文刪除會尊重游標位置
+- **修 bug**：中文模式打 `meta` + Enter 送出英文後，再按空白不再突然冒出中文
+  - Enter 組字中改為上屏「原文碼」並徹底清空 Rime/候選狀態
+  - 空白鍵僅在有 preedit 時才選候選（避免殘留候選誤選）
 
-### 延續 v0.1.12
+### 延續
 
-- 拼音候選依使用頻次（同碼優先）
-- 翻譯 EditText / 送原文 / 點譯文上屏
-
-## 授權
-
-MIT；第三方見 `NOTICE`
+- Del 空原文刪 App、長按連續刪
+- 拼音使用頻次排序
