@@ -478,8 +478,44 @@ public class XiapinIME extends InputMethodService {
      * 翻譯模式：原文只寫入鍵盤內 EditText（不寫 App）。
      * 插入位置尊重 EditText 目前的游標，不強制跳到最後。
      */
+
+    /** 翻譯原文框是否為空（無任何字元） */
+    private boolean isTranslateSourceEmpty() {
+        if (txtTranslateSource != null && txtTranslateSource.getText() != null) {
+            return txtTranslateSource.getText().length() == 0;
+        }
+        return translateSource == null || translateSource.isEmpty();
+    }
+
+    /**
+     * 翻譯模式且原文空時：符號 / 數字 / 空白 / 控制字元應直送 App，
+     * 中文與英文字母仍進原文 EditText。
+     */
+    private boolean shouldBypassTranslateToApp(String text) {
+        if (!translateMode || !isTranslateSourceEmpty()) return false;
+        if (text == null || text.isEmpty()) return true;
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            // 中文 → 進原文框
+            if ((cp >= 0x3400 && cp <= 0x9FFF)
+                    || (cp >= 0xF900 && cp <= 0xFAFF)
+                    || (cp >= 0x20000 && cp <= 0x2FA1F)) {
+                return false;
+            }
+            // 英文字母 → 進原文框（可翻）
+            if (Character.isLetter(cp)) {
+                return false;
+            }
+            i += Character.charCount(cp);
+        }
+        // 純符號 / 數字 / 空白 / 標點 → 直送 App
+        return true;
+    }
+
     private boolean handleTranslateCommit(String text) {
         if (!translateMode || text == null || text.isEmpty()) return false;
+        // 原文空 + 符號/數字/空白 → 不攔截，讓呼叫端直送 App
+        if (shouldBypassTranslateToApp(text)) return false;
 
         // 空白：直接加在 EditText 游標位置
         if (" ".equals(text) || "\n".equals(text)) {
@@ -824,9 +860,15 @@ public class XiapinIME extends InputMethodService {
             boolean composing = hasPreedit()
                     || (extraRootCandidate != null && !isEnglishMode() && hasPreedit());
 
-            // 翻譯模式 + 完全沒在組字 → 空白寫進原文 EditText
+            // 翻譯模式 + 完全沒在組字
             if (translateMode && !composing) {
-                handleTranslateCommit(" ");
+                if (isTranslateSourceEmpty()) {
+                    // 原文空：空白直送 App
+                    InputConnection ic = getCurrentInputConnection();
+                    if (ic != null) ic.commitText(" ", 1);
+                } else {
+                    handleTranslateCommit(" ");
+                }
                 return true;
             }
 
@@ -862,14 +904,17 @@ public class XiapinIME extends InputMethodService {
         }
         // Enter
         if (keycode == 0xff0d || keycode == '\n') {
-            // 翻譯模式（無組字）：送原文
+            // 翻譯模式（無組字）
             if (translateMode && !hasPreedit()) {
-                String src = translateSource == null ? "" : translateSource.trim();
-                if (!src.isEmpty()) {
+                if (!isTranslateSourceEmpty()) {
+                    // 有原文：Enter = 送原文
                     sendOriginalText();
                     return true;
                 }
-                return true; // 無原文也吞掉，避免誤送
+                // 原文空：Enter 直送 App
+                clearAssociations();
+                sendDownUpKey(android.view.KeyEvent.KEYCODE_ENTER);
+                return true;
             }
             if (isShowingTranslateOptions() && !hasPreedit()) {
                 return true; // 不自動送譯文
@@ -1081,11 +1126,11 @@ public class XiapinIME extends InputMethodService {
 
     /** 直接送字元（符號層用，不經 Rime） */
     public void commitRaw(String text) {
-        if (text == null) return;
-        // 數字/符號：中斷關聯
+        if (text == null || text.isEmpty()) return;
         clearAssociations();
+        // 翻譯原文空時：符號/數字會 bypass 進 App；有原文則進 EditText
         commitText(text);
-        if (candidateView != null) candidateView.update(rime.getContext());
+        if (candidateView != null && rime != null) candidateView.update(rime.getContext());
     }
 
     /** 點選關聯字 */

@@ -1,11 +1,11 @@
-# 蝦拼輸入法 v0.1.14
+# 蝦拼輸入法 v0.1.15
 
 ## 下載
 
 | 檔案 | 平台 |
 |------|------|
-| `xiapin-rime-v0.1.14.zip` | macOS |
-| `xiapin-android-v0.1.14.apk` | Android |
+| `xiapin-rime-v0.1.15.zip` | macOS |
+| `xiapin-android-v0.1.15.apk` | Android |
 
 https://github.com/Jakevin/xiapin-input-method/releases/latest
 
@@ -13,11 +13,13 @@ https://github.com/Jakevin/xiapin-input-method/releases/latest
 
 ### Android
 
-- **修 bug**：中文模式打 `meta` + Enter 送出英文後，再按空白不再突然冒出中文
-  - Enter 組字中改為上屏「原文碼」並徹底清空 Rime/候選狀態
-  - 空白鍵僅在有 preedit 時才選候選（避免殘留候選誤選）
+- **翻譯模式、原文框為空時**：
+  - **符號 / 數字** → 直接送進 App
+  - **Delete** → 直接刪 App
+  - **Enter** → 直接送出給 App
+  - **空白** → 直接送空格給 App
+- 有原文時行為不變（進 EditText；Enter = 送原文）
 
-### 延續
+### 延續 v0.1.14
 
-- Del 空原文刪 App、長按連續刪
-- 拼音使用頻次排序
+- meta + Enter 後空白不再冒中文
