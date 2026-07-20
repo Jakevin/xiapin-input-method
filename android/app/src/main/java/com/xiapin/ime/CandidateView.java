@@ -119,12 +119,20 @@ public class CandidateView extends FrameLayout {
             extraRootText = null;
             if (service != null) service.setExtraRootCandidate(null);
         } else {
+            // 過濾 ExtA/ExtB/符號等亂碼候補，只留常用 CJK BMP（U+4E00–9FFF）
+            List<RimeJNI.Candidate> filteredZh = new ArrayList<>();
+            for (RimeJNI.Candidate c : cands) {
+                if (c != null && isDisplayableCandidate(c.text)) {
+                    filteredZh.add(c);
+                }
+            }
+            cands = filteredZh;
             extraRootText = null;
             String norm = preedit.replace(" ", "").replace("'", "");
             // 所有 1–4 碼嘸蝦米字根（一鍵 a–z 與 ma/ay/pns…）一律置頂
             if (boshiamy != null && isRootCode(norm)) {
                 String root = boshiamy.rootForCode(norm);
-                if (root != null) {
+                if (root != null && isDisplayableCandidate(root)) {
                     extraRootText = root;
                 }
             }
@@ -450,6 +458,22 @@ public class CandidateView extends FrameLayout {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c < 'a' || c > 'z') return false;
+        }
+        return true;
+    }
+
+    /**
+     * 候選顯示過濾：只接受常用漢字 BMP（U+4E00–U+9FFF）與空白。
+     * 丟掉 ExtA/ExtB、相容表意、符號、拉丁混雜等易變 □／亂碼的項目。
+     */
+    static boolean isDisplayableCandidate(String text) {
+        if (text == null || text.isEmpty()) return false;
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            i += Character.charCount(cp);
+            if (cp >= 0x4E00 && cp <= 0x9FFF) continue;
+            if (cp == ' ') continue;
+            return false;
         }
         return true;
     }

@@ -13,17 +13,19 @@ import java.util.List;
 /**
  * 把 assets/rime/* 複製到可寫目錄（Rime 需要可寫的 shared_data_dir）。
  * 只在版本號變動或檔案缺失時複製。
+ * @return true 若本次有重新部署（呼叫端應清 user/build 強制 Rime 重編）
  */
 public final class AssetDeployer {
     private static final String TAG = "AssetDeployer";
 
     private AssetDeployer() {}
 
-    public static void deploy(Context ctx, File targetDir) {
+    public static boolean deploy(Context ctx, File targetDir) {
         if (!targetDir.exists()) targetDir.mkdirs();
         // 用 assets 內容的總 checksum 決定是否重部署，確保任何 schema/dict 變動都生效
         List<String> files = listAssetRime(ctx, "");
-        String checksum = computeChecksum(ctx, files);
+        // v2| 前綴：舊 mark 一律失效，強制重部署一次（修復壞掉的 prism/build）
+        String checksum = "v2|" + computeChecksum(ctx, files);
         File mark = new File(targetDir, ".deployed_ver");
         boolean needDeploy = true;
         if (mark.exists()) {
@@ -45,9 +47,24 @@ public final class AssetDeployer {
                 java.nio.file.Files.write(mark.toPath(), checksum.getBytes());
             } catch (IOException ignored) {}
             Log.i(TAG, "deployed " + files.size() + " rime files to " + targetDir);
+            return true;
         } else {
             Log.i(TAG, "rime assets unchanged, skip deploy");
+            return false;
         }
+    }
+
+    /** 遞迴刪除目錄（用於清 rime_user/build 強制重編）。 */
+    public static void deleteRecursive(File f) {
+        if (f == null || !f.exists()) return;
+        if (f.isDirectory()) {
+            File[] kids = f.listFiles();
+            if (kids != null) {
+                for (File k : kids) deleteRecursive(k);
+            }
+        }
+        //noinspection ResultOfMethodCallIgnored
+        f.delete();
     }
 
     /** 全檔 MD5 + 檔名，確保任何 schema/dict 變動都會重部署。 */

@@ -634,7 +634,12 @@ public class XiapinIME extends InputMethodService {
             File user = new File(getFilesDir(), "rime_user");
             if (!shared.exists()) shared.mkdirs();
             if (!user.exists()) user.mkdirs();
-            AssetDeployer.deploy(this, shared);
+            boolean redeployed = AssetDeployer.deploy(this, shared);
+            // assets 變動時清掉 user/build，避免殘留壞掉的 prism/table 快取
+            if (redeployed) {
+                AssetDeployer.deleteRecursive(new File(user, "build"));
+                android.util.Log.i("xiapin_ime", "cleared rime_user/build for rebuild");
+            }
             rime.startup(shared.getAbsolutePath(), user.getAbsolutePath());
             deployed = true;
             boshiamy = new BoshiamyComment(name -> {
