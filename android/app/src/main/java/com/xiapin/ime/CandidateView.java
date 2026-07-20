@@ -119,12 +119,21 @@ public class CandidateView extends FrameLayout {
             extraRootText = null;
             if (service != null) service.setExtraRootCandidate(null);
         } else {
+            // 過濾擴展區/部首/假名等「亂碼」候選，只留常用漢字 U+4E00–9FFF
+            List<RimeJNI.Candidate> filteredZh = new ArrayList<>();
+            for (RimeJNI.Candidate c : cands) {
+                if (c != null && isDisplayableCandidate(c.text)) {
+                    filteredZh.add(c);
+                }
+            }
+            cands = filteredZh;
+
             extraRootText = null;
             String norm = preedit.replace(" ", "").replace("'", "");
             // 所有 1–4 碼嘸蝦米字根（一鍵 a–z 與 ma/ay/pns…）一律置頂
             if (boshiamy != null && isRootCode(norm)) {
                 String root = boshiamy.rootForCode(norm);
-                if (root != null) {
+                if (root != null && isDisplayableCandidate(root)) {
                     extraRootText = root;
                 }
             }
@@ -450,6 +459,22 @@ public class CandidateView extends FrameLayout {
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
             if (c < 'a' || c > 'z') return false;
+        }
+        return true;
+    }
+
+    /**
+     * 候選是否適合顯示：只允許常用漢字 U+4E00–U+9FFF。
+     * 排除 Extension A（㐀…）、部首、假名等易成亂碼的字。
+     */
+    static boolean isDisplayableCandidate(String text) {
+        if (text == null || text.isEmpty()) return false;
+        for (int i = 0; i < text.length(); ) {
+            int cp = text.codePointAt(i);
+            i += Character.charCount(cp);
+            if (cp >= 0x4E00 && cp <= 0x9FFF) continue;
+            if (cp == ' ') continue;
+            return false;
         }
         return true;
     }

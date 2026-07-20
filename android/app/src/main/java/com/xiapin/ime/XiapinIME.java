@@ -634,7 +634,12 @@ public class XiapinIME extends InputMethodService {
             File user = new File(getFilesDir(), "rime_user");
             if (!shared.exists()) shared.mkdirs();
             if (!user.exists()) user.mkdirs();
-            AssetDeployer.deploy(this, shared);
+            boolean redeployed = AssetDeployer.deploy(this, shared);
+            // assets 更新或首次：清掉舊 binary（尤其壞掉的 luna_pinyin.prism）
+            if (redeployed) {
+                AssetDeployer.deleteRecursive(new java.io.File(user, "build"));
+                android.util.Log.i("xiapin_ime", "cleared rime_user/build for rebuild");
+            }
             rime.startup(shared.getAbsolutePath(), user.getAbsolutePath());
             deployed = true;
             boshiamy = new BoshiamyComment(name -> {

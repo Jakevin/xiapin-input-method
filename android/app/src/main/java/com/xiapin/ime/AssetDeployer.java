@@ -12,18 +12,20 @@ import java.util.List;
 
 /**
  * 把 assets/rime/* 複製到可寫目錄（Rime 需要可寫的 shared_data_dir）。
- * 只在版本號變動或檔案缺失時複製。
+ * 只在版本號變動或檔案缺失時複製；重部署時回傳 true，呼叫端應清掉 user/build。
  */
 public final class AssetDeployer {
     private static final String TAG = "AssetDeployer";
 
     private AssetDeployer() {}
 
-    public static void deploy(Context ctx, File targetDir) {
+    /** @return true 若本次有重新複製 assets（需重建 Rime binary） */
+    public static boolean deploy(Context ctx, File targetDir) {
         if (!targetDir.exists()) targetDir.mkdirs();
-        // 用 assets 內容的總 checksum 決定是否重部署，確保任何 schema/dict 變動都生效
         List<String> files = listAssetRime(ctx, "");
         String checksum = computeChecksum(ctx, files);
+        // 加 schema 版本戳，確保 luna_pinyin_build 修正後一定重部署
+        checksum = "v2|" + checksum;
         File mark = new File(targetDir, ".deployed_ver");
         boolean needDeploy = true;
         if (mark.exists()) {
@@ -36,7 +38,7 @@ public final class AssetDeployer {
             for (String rel : files) {
                 File out = new File(targetDir, rel);
                 try {
-                    copyAsset(ctx, "rime/" + rel, out); // 總是覆蓋
+                    copyAsset(ctx, "rime/" + rel, out);
                 } catch (IOException e) {
                     Log.e(TAG, "copy failed: " + rel, e);
                 }
@@ -45,12 +47,25 @@ public final class AssetDeployer {
                 java.nio.file.Files.write(mark.toPath(), checksum.getBytes());
             } catch (IOException ignored) {}
             Log.i(TAG, "deployed " + files.size() + " rime files to " + targetDir);
-        } else {
-            Log.i(TAG, "rime assets unchanged, skip deploy");
+            return true;
         }
+        Log.i(TAG, "rime assets unchanged, skip deploy");
+        return false;
     }
 
-    /** 全檔 MD5 + 檔名，確保任何 schema/dict 變動都會重部署。 */
+    /** 刪除目錄內容（用於清掉損壞的 Rime build） */
+    public static void deleteRecursive(File f) {
+        if (f == null || !f.exists()) return;
+        if (f.isDirectory()) {
+            File[] kids = f.listFiles();
+            if (kids != null) {
+                for (File k : kids) deleteRecursive(k);
+            }
+        }
+        //noinspection ResultOfMethodCallIgnored
+        f.delete();
+    }
+
     private static String computeChecksum(Context ctx, List<String> files) {
         StringBuilder sb = new StringBuilder();
         for (String rel : files) {
