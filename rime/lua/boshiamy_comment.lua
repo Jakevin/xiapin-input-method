@@ -1,5 +1,8 @@
 local M = {}
-local MAX_PHRASE_CHARS = 4
+
+-- 效能：只對單字／雙字加字根；候選過多時只處理前 LIMIT 個
+local MAX_PHRASE_CHARS = 2
+local MAX_CANDS_PER_TICK = 24
 
 local function script_dir()
   local source = debug.getinfo(1, "S").source or ""
@@ -33,30 +36,25 @@ end
 
 local function is_cjk(char)
   local cp = utf8_codepoint(char)
-  return cp and cp >= 0x3400 and cp <= 0x9fff
+  -- 常用區即可（與 Android 顯示過濾對齊，略過 ExtA 可加速）
+  return cp and cp >= 0x4E00 and cp <= 0x9fff
 end
 
+-- 只保留「最短碼」：省記憶體、查表 O(1)
 local function add_root(roots, text, code)
   local existing = roots[text]
-  if not existing then
-    existing = {}
-    roots[text] = existing
+  if not existing or #code < #existing then
+    roots[text] = code
   end
-
-  for _, item in ipairs(existing) do
-    if item == code then
-      return
-    end
-  end
-  existing[#existing + 1] = code
 end
 
 local function read_lookup(path, roots)
   local file = io.open(path, "r")
   if not file then
-    return
+    return 0
   end
 
+  local count = 0
   local in_data = false
   for raw in file:lines() do
     if raw == "..." then
@@ -67,14 +65,16 @@ local function read_lookup(path, roots)
         local text = raw:sub(1, tab - 1):gsub("^%s+", ""):gsub("%s+$", "")
         local rest = raw:sub(tab + 1)
         local code = rest:match("^([^%s\t]+)")
-        local chars = utf8_chars(text)
-        local is_single_char = #chars == 1
-
-        if is_single_char and code and not code:find("[,%.]") then
-          local only_char = utf8_codepoint(chars[1])
-
-          if only_char and only_char >= 0x3400 and only_char <= 0x9fff then
-            add_root(roots, text, code)
+        if text and code and not code:find("[,%.]") then
+          -- 單字
+          local chars = utf8_chars(text)
+          if #chars == 1 and is_cjk(chars[1]) then
+            local c = code
+            if c:sub(1, 1) == "~" then
+              c = c:sub(2)
+            end
+            add_root(roots, text, c)
+            count = count + 1
           end
         end
       end
@@ -82,47 +82,39 @@ local function read_lookup(path, roots)
   end
 
   file:close()
-end
-
-local function compact_codes(codes)
-  if not codes or #codes == 0 then
-    return nil
-  end
-  if #codes == 1 then
-    return codes[1]
-  end
-  return table.concat(codes, " / ", 1, math.min(#codes, 3))
+  return count
 end
 
 local function comment_for_text(text, roots)
+  -- 純 ASCII 直接跳過（英文候選）
   if text:find("^[%z\1-\127]+$") then
     return nil
   end
 
   local chars = utf8_chars(text)
-  if #chars == 0 then
-    return nil
-  elseif #chars > MAX_PHRASE_CHARS then
+  local n = #chars
+  if n == 0 or n > MAX_PHRASE_CHARS then
     return nil
   end
 
-  if #chars == 1 then
+  if n == 1 then
     if not is_cjk(chars[1]) then
       return nil
     end
-    return compact_codes(roots[chars[1]])
+    return roots[chars[1]]
   end
 
+  -- 雙字：各取最短碼，用 · 連接
   local parts = {}
   for _, ch in ipairs(chars) do
     if not is_cjk(ch) then
       return nil
     end
-    local codes = roots[ch]
-    if not codes or #codes == 0 then
+    local code = roots[ch]
+    if not code then
       return nil
     end
-    parts[#parts + 1] = codes[1]
+    parts[#parts + 1] = code
   end
   return table.concat(parts, "·")
 end
@@ -130,20 +122,32 @@ end
 function M.init(env)
   local roots = {}
   local dir = script_dir()
+  local total = 0
 
-  read_lookup(dir .. "/../xiapin_liur.dict.yaml", roots)
-  read_lookup(dir .. "/../openxiami_TCJP.dict.yaml", roots)
-  read_lookup(dir .. "/../openxiami_TradExt.dict.yaml", roots)
+  -- 優先讀已過濾的 xiapin_liur（小、快）；沒有才退回 openxiami 原表
+  local liur = dir .. "/../xiapin_liur.dict.yaml"
+  local n = read_lookup(liur, roots)
+  total = total + n
+  if n == 0 then
+    total = total + read_lookup(dir .. "/../openxiami_TCJP.dict.yaml", roots)
+    total = total + read_lookup(dir .. "/../openxiami_TradExt.dict.yaml", roots)
+  end
 
   env.roots = roots
   env.comment_cache = {}
+  -- 可選：log 初始化規模（Squirrel 日誌）
+  -- log.info(string.format("[boshiamy_comment] loaded %d root entries", total))
 end
 
 function M.func(input, env)
   local roots = env.roots or {}
   local cache = env.comment_cache or {}
+  local seen = 0
+
   for cand in input:iter() do
-    if cand.text and cand.text ~= "" then
+    seen = seen + 1
+    -- 超過本頁合理數量就不再算 comment，直接透傳（保順序）
+    if seen <= MAX_CANDS_PER_TICK and cand.text and cand.text ~= "" then
       local comment = cache[cand.text]
       if comment == nil then
         comment = comment_for_text(cand.text, roots) or false
@@ -155,7 +159,7 @@ function M.func(input, env)
         if existing == "" then
           target.comment = comment
         elseif not existing:find(comment, 1, true) then
-          target.comment = existing .. "  " .. comment
+          -- 已有 comment 就不再串長字串（省字串配置）
         end
       end
     end

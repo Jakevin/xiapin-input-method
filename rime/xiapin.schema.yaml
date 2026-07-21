@@ -4,11 +4,12 @@
 schema:
   schema_id: xiapin
   name: "蝦拼"
-  version: "0.1.0"
+  version: "0.1.18"
   author:
     - "蝦拼輸入法 project"
   description: |
     Experimental Pinyin plus openxiami root schema.
+    v0.1.18: performance-oriented defaults for macOS Squirrel.
 
 switches:
   - name: ascii_mode
@@ -49,18 +50,27 @@ translator:
   dictionary: xiapin.extended
   enable_sentence: false
   enable_user_dict: false
+  # 字根補全保留（嘸蝦米需要），但關閉過重的 sentence
   enable_completion: true
   initial_quality: 1000
+  # 限制編碼提示長度，減少 menu 負擔
+  spelling_hints: 4
 
 pinyin:
   dictionary: luna_pinyin
+  # 組詞保留；關閉 user_dict 減少磁碟 I/O
   enable_sentence: true
   enable_user_dict: false
   initial_quality: 100
+  # 句段過長時較慢：限制最大音節（Rime 支援）
+  max_homophones: 50
   preedit_format:
     - xform/([nl])v/$1ü/
     - xform/([nl])ue/$1üe/
     - xform/([jqxy])v/$1u/
+
+menu:
+  page_size: 7
 
 punctuator:
   import_preset: default

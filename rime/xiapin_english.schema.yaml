@@ -4,12 +4,12 @@
 schema:
   schema_id: xiapin_english
   name: "蝦拼英文"
-  version: "0.1.0"
+  version: "0.1.18"
   author:
     - "蝦拼輸入法 project"
   description: |
     English candidate mode for 蝦拼.
-    This is not ascii_mode; it keeps Rime candidates available for English prefixes.
+    v0.1.18: disable sentence on huge easy_en table for snappier typing.
 
 switches:
   - name: full_shape
@@ -39,13 +39,17 @@ speller:
 
 translator:
   dictionary: easy_en
-  enable_sentence: true
+  # easy_en ~76 萬詞：關閉 sentence 可明顯降低每鍵延遲
+  enable_sentence: false
   enable_user_dict: false
   enable_completion: true
   initial_quality: 1000
-  spelling_hints: 9
+  spelling_hints: 0
   comment_format:
     - xform/^.+$//
+
+menu:
+  page_size: 7
 
 punctuator:
   import_preset: default
