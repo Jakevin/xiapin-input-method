@@ -459,11 +459,26 @@ public class XiapinIME extends InputMethodService {
                 }
                 return;
             }
-            translateOptions = options != null ? options : new java.util.ArrayList<>();
+            translateOptions = sanitizeTranslateOptions(options);
             translateResult = translateOptions.isEmpty() ? "" : translateOptions.get(0);
             updateTranslateUi();
             renderTranslateResults();
         });
+    }
+
+
+    /** 丟掉 null / "null" / 空白的假譯文 */
+    private static java.util.List<String> sanitizeTranslateOptions(java.util.List<String> options) {
+        java.util.ArrayList<String> out = new java.util.ArrayList<>();
+        if (options == null) return out;
+        for (String s : options) {
+            if (s == null) continue;
+            String x = s.trim();
+            if (x.isEmpty()) continue;
+            if ("null".equalsIgnoreCase(x) || "undefined".equalsIgnoreCase(x)) continue;
+            out.add(x);
+        }
+        return out;
     }
 
     private void showTranslatePlaceholder(String text) {
@@ -491,6 +506,7 @@ public class XiapinIME extends InputMethodService {
         for (int i = 0; i < translateOptions.size(); i++) {
             final String opt = translateOptions.get(i);
             if (opt == null || opt.isEmpty()) continue;
+            if ("null".equalsIgnoreCase(opt.trim())) continue;
             android.widget.TextView chip = new android.widget.TextView(this);
             chip.setText(opt);
             chip.setTextSize(15);
@@ -526,6 +542,7 @@ public class XiapinIME extends InputMethodService {
     public void insertTranslationOption(String text) {
         if (text == null || text.isEmpty() || "…".equals(text) || "失敗".equals(text)) return;
         if ("譯文會出現在這裡".equals(text)) return;
+        if ("null".equalsIgnoreCase(text.trim())) return;
         InputConnection ic = getCurrentInputConnection();
         if (ic != null) {
             ic.commitText(text, 1);

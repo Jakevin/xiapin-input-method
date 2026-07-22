@@ -80,7 +80,11 @@ public final class TranslateHelper {
                         if (one != null && !one.isEmpty()) options.add(one);
                     }
                 }
-                if (options.isEmpty()) err = useLlm ? "LLM 翻譯失敗（檢查 Key/模型/網址）" : "翻譯失敗";
+                if (options.isEmpty()) {
+                    err = useLlm
+                            ? "LLM 無譯文（檢查模型回傳格式 / Key / 網址）"
+                            : "翻譯失敗";
+                }
             } catch (Exception e) {
                 Log.w(TAG, "translate error", e);
                 err = e.getMessage() != null ? e.getMessage() : "網路錯誤";
@@ -140,22 +144,105 @@ public final class TranslateHelper {
             throw new IllegalStateException(msg);
         }
         JSONArray choices = root.optJSONArray("choices");
-        if (choices == null || choices.length() == 0) return new ArrayList<>();
-        JSONObject c0 = choices.getJSONObject(0);
-        JSONObject msg = c0.optJSONObject("message");
-        String content = msg != null ? msg.optString("content", "").trim() : "";
-        if (content.isEmpty()) {
-            // 部分相容實作把文字放在 text
-            content = c0.optString("text", "").trim();
+        if (choices == null || choices.length() == 0) {
+            Log.w(TAG, "LLM no choices, body=" + truncate(raw, 300));
+            return new ArrayList<>();
         }
+        JSONObject c0 = choices.getJSONObject(0);
+        String content = extractMessageText(c0);
+        content = normalizeTranslation(content);
+        Log.i(TAG, "LLM ok len=" + (content == null ? 0 : content.length())
+                + " preview=" + truncate(content, 80));
+        List<String> out = new ArrayList<>();
+        if (content != null && !content.isEmpty()) out.add(content);
+        return out;
+    }
+
+    /**
+     * 從 choices[0] 取出譯文。
+     * 注意：Android JSONObject.optString() 在值為 JSON null 時會回傳字面 "null"！
+     */
+    private static String extractMessageText(JSONObject choice) {
+        if (choice == null) return "";
+        // 1) message.content
+        JSONObject msg = choice.optJSONObject("message");
+        if (msg != null) {
+            String c = jsonValueToText(msg, "content");
+            if (c != null && !c.isEmpty()) return c;
+            // 部分 API: message.reasoning / refusal
+            c = jsonValueToText(msg, "text");
+            if (c != null && !c.isEmpty()) return c;
+        }
+        // 2) choice.text (舊 completion 風格)
+        String t = jsonValueToText(choice, "text");
+        if (t != null && !t.isEmpty()) return t;
+        // 3) delta (stream 殘片誤當完整回覆)
+        JSONObject delta = choice.optJSONObject("delta");
+        if (delta != null) {
+            String c = jsonValueToText(delta, "content");
+            if (c != null && !c.isEmpty()) return c;
+        }
+        return "";
+    }
+
+    /** 安全取字串：避開 optString 把 JSON null 變成 "null" */
+    private static String jsonValueToText(JSONObject obj, String key) {
+        if (obj == null || !obj.has(key) || obj.isNull(key)) return "";
+        Object v = obj.opt(key);
+        if (v == null || v == JSONObject.NULL) return "";
+        if (v instanceof String) {
+            return ((String) v).trim();
+        }
+        // OpenAI 多模態: content 可能是 [{type:text,text:"..."}]
+        if (v instanceof JSONArray) {
+            JSONArray arr = (JSONArray) v;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < arr.length(); i++) {
+                Object item = arr.opt(i);
+                if (item instanceof String) {
+                    if (sb.length() > 0) sb.append('\n');
+                    sb.append(((String) item).trim());
+                } else if (item instanceof JSONObject) {
+                    JSONObject o = (JSONObject) item;
+                    String tx = o.optString("text", null);
+                    if (tx == null || "null".equals(tx)) {
+                        // 有的用 content 欄
+                        if (!o.isNull("content")) {
+                            Object c2 = o.opt("content");
+                            if (c2 instanceof String) tx = (String) c2;
+                        }
+                    }
+                    if (tx != null && !"null".equals(tx) && !tx.isEmpty()) {
+                        if (sb.length() > 0) sb.append('\n');
+                        sb.append(tx.trim());
+                    }
+                }
+            }
+            return sb.toString().trim();
+        }
+        // 其他型別
+        String s = String.valueOf(v).trim();
+        if ("null".equalsIgnoreCase(s) || "undefined".equalsIgnoreCase(s)) return "";
+        return s;
+    }
+
+    private static String normalizeTranslation(String content) {
+        if (content == null) return "";
+        content = content.trim();
+        if (content.isEmpty()) return "";
+        if ("null".equalsIgnoreCase(content) || "undefined".equalsIgnoreCase(content)) return "";
         // 去掉包起來的引號
-        if ((content.startsWith("\"") && content.endsWith("\""))
-                || (content.startsWith("「") && content.endsWith("」"))) {
+        if ((content.startsWith("\"") && content.endsWith("\"") && content.length() >= 2)
+                || (content.startsWith("「") && content.endsWith("」") && content.length() >= 2)
+                || (content.startsWith("'") && content.endsWith("'") && content.length() >= 2)) {
             content = content.substring(1, content.length() - 1).trim();
         }
-        List<String> out = new ArrayList<>();
-        if (!content.isEmpty()) out.add(content);
-        return out;
+        // 去掉常見前綴
+        if (content.startsWith("Translation:")) {
+            content = content.substring("Translation:".length()).trim();
+        }
+        if ("null".equalsIgnoreCase(content)) return "";
+        return content;
     }
 
     private static List<String> translateGoogle(String text, String sl, String tl) throws Exception {
