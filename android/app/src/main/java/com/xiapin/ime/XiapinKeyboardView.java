@@ -256,8 +256,8 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         Keyboard kb = getKeyboard();
         if (kb == null) return;
         float dens = getResources().getDisplayMetrics().density;
-        letterPaint.setTextSize(18f * dens);
-        zhuyinPaint.setTextSize(13f * dens);
+        letterPaint.setTextSize(16f * dens);
+        zhuyinPaint.setTextSize(12f * dens);
         int padL = getPaddingLeft();
         int padT = getPaddingTop();
         Paint.FontMetrics lfm = letterPaint.getFontMetrics();
