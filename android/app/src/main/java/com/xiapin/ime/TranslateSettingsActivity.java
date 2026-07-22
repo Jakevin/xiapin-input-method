@@ -82,7 +82,7 @@ public class TranslateSettingsActivity extends Activity {
             String base = TranslatePrefs.getBaseUrl(this);
             boolean hasKey = TranslatePrefs.getApiKey(this).length() > 0;
             return "目前：LLM · " + (hasKey ? "Key✓" : "Key✗") + " · " + model + "\n" + base
-                    + "\n（輸入停 3 秒後自動呼叫；也可按「翻譯」）";
+                    + "\n（輸入停 3 秒後自動呼叫）";
         }
         return "目前：免費即時 gtx（打字 debounce 後自動翻）";
     }

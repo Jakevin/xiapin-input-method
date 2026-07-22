@@ -54,7 +54,6 @@ public class XiapinIME extends InputMethodService {
     private android.widget.LinearLayout translateResultRow;
     private android.widget.TextView btnClearSource;
     private android.widget.TextView btnSendSource;
-    private android.widget.TextView btnRunTranslate;
     private android.widget.TextView btnTranslateSettings;
     private final android.os.Handler translateHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable pendingTranslate;
@@ -90,7 +89,6 @@ public class XiapinIME extends InputMethodService {
         translateSourceRow = root.findViewById(R.id.translate_source_row);
         translateResultRow = root.findViewById(R.id.translate_result_row);
         btnClearSource = root.findViewById(R.id.btn_clear_source);
-        btnRunTranslate = root.findViewById(R.id.btn_run_translate);
         btnTranslateSettings = root.findViewById(R.id.btn_translate_settings);
         btnSendSource = root.findViewById(R.id.btn_send_source);
         if (btnTranslate != null) {
@@ -102,10 +100,7 @@ public class XiapinIME extends InputMethodService {
         if (btnClearSource != null) {
             btnClearSource.setOnClickListener(v -> clearTranslateSource());
         }
-        if (btnRunTranslate != null) {
-            btnRunTranslate.setOnClickListener(v -> manualTranslate());
-        }
-        if (btnTranslateSettings != null) {
+if (btnTranslateSettings != null) {
             btnTranslateSettings.setOnClickListener(v -> openTranslateSettings());
         }
         if (btnSendSource != null) {
@@ -303,15 +298,7 @@ public class XiapinIME extends InputMethodService {
             btnClearSource.setVisibility(translateMode ? View.VISIBLE : View.GONE);
         }
         boolean llm = TranslatePrefs.isLlm(this);
-        if (btnRunTranslate != null) {
-            // LLM：一定顯示手動翻譯；gtx 也可手動補翻
-            btnRunTranslate.setVisibility(translateMode ? View.VISIBLE : View.GONE);
-            boolean hasSrc = translateSource != null && !translateSource.trim().isEmpty();
-            btnRunTranslate.setAlpha(hasSrc ? 1f : 0.45f);
-            btnRunTranslate.setEnabled(hasSrc);
-            btnRunTranslate.setText(llm ? "翻譯" : "重翻");
-        }
-        if (btnTranslateSettings != null) {
+if (btnTranslateSettings != null) {
             btnTranslateSettings.setVisibility(translateMode ? View.VISIBLE : View.GONE);
         }
         if (btnSendSource != null) {
@@ -352,7 +339,7 @@ public class XiapinIME extends InputMethodService {
                     if (pendingTranslate != null) {
                         txtTranslateHint.setText("LLM→" + target.label + " · 停 3 秒後自動翻");
                     } else {
-                        txtTranslateHint.setText("LLM→" + target.label + " · 停 3 秒自動 / 可按翻譯");
+                        txtTranslateHint.setText("LLM→" + target.label + " · 停 3 秒自動翻");
                     }
                     txtTranslateHint.setTextColor(0xFFFBBF24);
                 } else {
@@ -382,35 +369,6 @@ public class XiapinIME extends InputMethodService {
         } catch (Exception e) {
             android.util.Log.w("XiapinIME", "open settings failed", e);
         }
-    }
-
-    /** 手動翻譯（LLM 唯一觸發點；gtx 也可按重翻） */
-    private void manualTranslate() {
-        if (!translateMode) return;
-        String src = translateSource == null ? "" : translateSource.trim();
-        if (src.isEmpty() && txtTranslateSource != null && txtTranslateSource.getText() != null) {
-            src = txtTranslateSource.getText().toString().trim();
-        }
-        if (src.isEmpty()) return;
-        if (TranslatePrefs.isLlm(this)) {
-            String key = TranslatePrefs.getApiKey(this);
-            if (key == null || key.isEmpty()) {
-                if (txtTranslateHint != null) {
-                    txtTranslateHint.setText("請先在設定填 API Key");
-                    txtTranslateHint.setTextColor(0xFFF28B82);
-                }
-                showTranslatePlaceholder("無 Key");
-                openTranslateSettings();
-                return;
-            }
-        }
-        cancelPendingTranslate();
-        if (txtTranslateHint != null) {
-            txtTranslateHint.setText(TranslatePrefs.isLlm(this) ? "LLM 翻譯中…" : "翻譯中…");
-            txtTranslateHint.setTextColor(0xFF9AA0A6);
-        }
-        showTranslatePlaceholder("…");
-        requestTranslateNow(src);
     }
 
     private void cancelPendingTranslate() {

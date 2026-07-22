@@ -144,7 +144,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="注意：LLM 模式在輸入停止約 3 秒後才自動翻譯（持續打字會重計時），避免每字打 API。也可按「翻譯」立即翻。"
+            android:text="注意：LLM 模式在輸入停止約 3 秒後才自動翻譯（持續打字會重計時），避免每字打 API。"
             android:textColor="#FBBF24"
             android:textSize="12sp"
             android:paddingBottom="16dp" />

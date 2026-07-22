@@ -1,9 +1,6 @@
-# 蝦拼 v0.1.22
+# 蝦拼 v0.1.23
 
-## LLM 翻譯：停 3 秒自動翻
+- 移除鍵盤「翻譯」按鈕（LLM/gtx 皆依停頓自動翻）
+- LLM：停約 3 秒自動翻；gtx：約 0.3 秒
 
-- 輸入原文後**停止約 3 秒**會自動呼叫 LLM（持續打字會重計時）
-- 仍可按「翻譯」立刻翻
-- 免費 gtx 仍為約 0.3 秒 debounce
-
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.1.22
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.1.23
