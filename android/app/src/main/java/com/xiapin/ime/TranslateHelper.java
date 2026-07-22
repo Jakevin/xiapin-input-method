@@ -39,21 +39,24 @@ public final class TranslateHelper {
     }
 
     public static final class TargetLang {
-        public final String label;
-        public final String tl;
-        public final String promptName;
+        public final String label;       // UI：英 / 日 / 简
+        public final String tl;          // gtx code
+        public final String promptName;  // 英文名（備用）
+        /** user prompt 用，如 jp-jp 日本語 */
+        public final String promptTag;
 
-        public TargetLang(String label, String tl, String promptName) {
+        public TargetLang(String label, String tl, String promptName, String promptTag) {
             this.label = label;
             this.tl = tl;
             this.promptName = promptName;
+            this.promptTag = promptTag;
         }
     }
 
     public static final TargetLang[] TARGETS = {
-            new TargetLang("英", "en", "English"),
-            new TargetLang("日", "ja", "Japanese"),
-            new TargetLang("简", "zh-CN", "Simplified Chinese"),
+            new TargetLang("英", "en", "English", "en-us English"),
+            new TargetLang("日", "ja", "Japanese", "jp-jp 日本語"),
+            new TargetLang("简", "zh-CN", "Simplified Chinese", "zh-cn 简体中文"),
     };
 
     /** 依設定選擇後端；LLM 也走此入口（呼叫端負責不要自動狂打） */
@@ -111,21 +114,25 @@ public final class TranslateHelper {
         if (key.isEmpty()) throw new IllegalStateException("未設定 API Key");
         if (model.isEmpty()) throw new IllegalStateException("未設定模型名稱");
 
-        String targetName = "English";
+        String promptTag = "en-us English";
         for (TargetLang t : TARGETS) {
             if (t.tl.equals(tl)) {
-                targetName = t.promptName;
+                promptTag = t.promptTag;
                 break;
             }
         }
 
-        // 嚴格要求只輸出譯文；免費/推理模型常把 reasoning 塞滿 token
-        String system = "You are a translation engine. "
-                + "Translate the user message into " + targetName + " only. "
-                + "Rules: (1) Output the translation text and nothing else. "
-                + "(2) No thinking, no analysis, no quotes, no labels, no romanization. "
-                + "(3) Keep emojis if present.";
-        String user = "Translate into " + targetName + ":\n\n" + text;
+        // 使用者指定的專業翻譯 prompt
+        String system = "你是專業的翻譯員。\n"
+                + "要求：\n"
+                + "1) 僅輸出譯文，不要音標、註解或額外說明。\n"
+                + "2) 使用簡潔口吻並符合指定目標語言。\n"
+                + "3) 專有名詞、人名、產品名稱、術語需在同一會話中保持一致。\n"
+                + "4) 若提供了既有譯文或譯名，請嚴格沿用。\n"
+                + "5) 先判斷原文語言，若與目標語言相同，請改輸出為繁體中文。";
+        String user = "請翻譯為「" + promptTag + "」，僅輸出譯文（不要音標與註解）。\n"
+                + "---\n"
+                + text;
 
         JSONObject body = new JSONObject();
         body.put("model", model);
