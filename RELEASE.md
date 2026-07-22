@@ -1,10 +1,6 @@
-# 蝦注拼 v0.2.9
+# 蝦注拼 v0.2.10
 
-## 修正最右鍵被裁成一半
+- **符** 移到底列（中｜符｜空格｜ㄦ｜⌫｜↵）
+- 第四排只留 `z x c v b n m , . /`，不再那麼擠
 
-A 列 `a–l ;` 總寬 >100%（多了 horizontalGap 內縮），`;`／ㄤ 只剩一半。
-
-- 每列鍵寬+gap 嚴格 ≤100%
-- `;`（ㄤ）、`/`（ㄥ）完整顯示
-
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.9
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.10
