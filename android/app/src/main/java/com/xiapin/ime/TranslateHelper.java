@@ -119,10 +119,13 @@ public final class TranslateHelper {
             }
         }
 
-        String system = "You are a professional translator. "
-                + "Translate the user's text into " + targetName + ". "
-                + "Output ONLY the translation, no quotes, no explanation, no romanization unless asked.";
-        String user = text;
+        // 嚴格要求只輸出譯文；免費/推理模型常把 reasoning 塞滿 token
+        String system = "You are a translation engine. "
+                + "Translate the user message into " + targetName + " only. "
+                + "Rules: (1) Output the translation text and nothing else. "
+                + "(2) No thinking, no analysis, no quotes, no labels, no romanization. "
+                + "(3) Keep emojis if present.";
+        String user = "Translate into " + targetName + ":\n\n" + text;
 
         JSONObject body = new JSONObject();
         body.put("model", model);
@@ -130,9 +133,10 @@ public final class TranslateHelper {
         messages.put(new JSONObject().put("role", "system").put("content", system));
         messages.put(new JSONObject().put("role", "user").put("content", user));
         body.put("messages", messages);
-        body.put("temperature", 0.2);
-        // 省 token
-        body.put("max_tokens", Math.min(2048, Math.max(64, text.length() * 4)));
+        body.put("temperature", 0.1);
+        // 至少 512：openrouter/free 等推理模型會先吐英文思考，太小會 finish_reason=length 且 content 殘缺/null
+        int mt = Math.min(2048, Math.max(1024, text.length() * 8 + 512));
+        body.put("max_tokens", mt);
 
         String raw = httpPostJson(url, key, body.toString(), 45000);
         if (raw == null || raw.isEmpty()) return new ArrayList<>();
@@ -164,19 +168,18 @@ public final class TranslateHelper {
      */
     private static String extractMessageText(JSONObject choice) {
         if (choice == null) return "";
-        // 1) message.content
         JSONObject msg = choice.optJSONObject("message");
         if (msg != null) {
             String c = jsonValueToText(msg, "content");
             if (c != null && !c.isEmpty()) return c;
-            // 部分 API: message.reasoning / refusal
             c = jsonValueToText(msg, "text");
             if (c != null && !c.isEmpty()) return c;
+            // 部分 free/reasoning 模型 content=null，譯文在 reasoning 末段
+            c = jsonValueToText(msg, "reasoning");
+            if (c != null && !c.isEmpty()) return c;
         }
-        // 2) choice.text (舊 completion 風格)
         String t = jsonValueToText(choice, "text");
         if (t != null && !t.isEmpty()) return t;
-        // 3) delta (stream 殘片誤當完整回覆)
         JSONObject delta = choice.optJSONObject("delta");
         if (delta != null) {
             String c = jsonValueToText(delta, "content");
@@ -231,18 +234,99 @@ public final class TranslateHelper {
         content = content.trim();
         if (content.isEmpty()) return "";
         if ("null".equalsIgnoreCase(content) || "undefined".equalsIgnoreCase(content)) return "";
-        // 去掉包起來的引號
         if ((content.startsWith("\"") && content.endsWith("\"") && content.length() >= 2)
                 || (content.startsWith("「") && content.endsWith("」") && content.length() >= 2)
                 || (content.startsWith("'") && content.endsWith("'") && content.length() >= 2)) {
             content = content.substring(1, content.length() - 1).trim();
         }
-        // 去掉常見前綴
-        if (content.startsWith("Translation:")) {
-            content = content.substring("Translation:".length()).trim();
+        if (content.regionMatches(true, 0, "Translation:", 0, 12)) {
+            content = content.substring(12).trim();
+        }
+        // 推理模型常回一大段英文思考：若有明顯「非英文」行，取最像譯文的一行
+        if (content.length() > 80 && looksLikeEnglishReasoning(content)) {
+            String picked = pickLikelyTranslationLine(content);
+            if (picked != null && !picked.isEmpty()) content = picked;
         }
         if ("null".equalsIgnoreCase(content)) return "";
-        return content;
+        return content.trim();
+    }
+
+    private static boolean looksLikeEnglishReasoning(String s) {
+        String lower = s.toLowerCase();
+        return lower.contains("the user") || lower.contains("translate")
+                || lower.contains("i need to") || lower.contains("output only")
+                || lower.contains("reasoning") || s.contains("\n");
+    }
+
+    /** 從多行/長推理文字中挑出較像譯文的一行 */
+    private static String pickLikelyTranslationLine(String content) {
+        if (content == null || content.isEmpty()) return null;
+
+        // 1) 引號內含日文/中文的片段優先（推理模型常見: Possible translation: "...."）
+        java.util.regex.Matcher qm = java.util.regex.Pattern
+                .compile("[\"「]([^\"」]{2,200})[\"」]")
+                .matcher(content);
+        String bestQ = null;
+        int bestQScore = -1;
+        while (qm.find()) {
+            String q = qm.group(1).trim();
+            int sc = scriptScore(q);
+            if (sc > bestQScore) {
+                bestQScore = sc;
+                bestQ = q;
+            }
+        }
+        if (bestQScore >= 4) return bestQ;
+
+        // 2) 逐行打分
+        String[] lines = content.split("\r?\n");
+        String best = null;
+        int bestScore = -1;
+        for (String raw : lines) {
+            String line = raw.trim();
+            if (line.isEmpty()) continue;
+            // 去掉常見前綴
+            line = line.replaceFirst("(?i)^(possible\\s+translation|translation|final|answer|output)\\s*[:：-]\\s*", "");
+            line = line.trim();
+            if ((line.startsWith("\"") && line.endsWith("\"") && line.length() >= 2)
+                    || (line.startsWith("「") && line.endsWith("」") && line.length() >= 2)) {
+                line = line.substring(1, line.length() - 1).trim();
+            }
+            String low = line.toLowerCase();
+            if (low.startsWith("the user") || low.startsWith("so we") || low.startsWith("i need")
+                    || low.startsWith("probably") || low.startsWith("could be") || low.startsWith("wait")
+                    || low.startsWith("next,") || low.startsWith("putting it")
+                    || low.startsWith("starting with") || low.startsWith("alternatively")
+                    || low.contains("translates to") || low.contains("output only")
+                    || low.contains("can be translated")) {
+                continue;
+            }
+            int score = scriptScore(line);
+            if (line.length() <= 120) score += 2;
+            if (line.length() > 200) score -= 3;
+            if (score > bestScore) {
+                bestScore = score;
+                best = line;
+            }
+        }
+        if (bestScore < 3) return null;
+        return best;
+    }
+
+    /** CJK/假名越多分越高；純英文很低 */
+    private static int scriptScore(String line) {
+        if (line == null || line.isEmpty()) return -99;
+        int cjk = 0, kana = 0, latin = 0;
+        for (int i = 0; i < line.length(); ) {
+            int cp = line.codePointAt(i);
+            i += Character.charCount(cp);
+            if ((cp >= 0x4E00 && cp <= 0x9FFF) || (cp >= 0x3400 && cp <= 0x4DBF)) cjk++;
+            else if ((cp >= 0x3040 && cp <= 0x30FF) || (cp >= 0x31F0 && cp <= 0x31FF)) kana++;
+            else if ((cp >= 'A' && cp <= 'Z') || (cp >= 'a' && cp <= 'z')) latin++;
+        }
+        int score = cjk * 3 + kana * 4;
+        if (latin > cjk + kana) score -= 6;
+        return score;
     }
 
     private static List<String> translateGoogle(String text, String sl, String tl) throws Exception {
