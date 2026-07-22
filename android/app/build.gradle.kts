@@ -10,8 +10,8 @@ android {
         applicationId = "com.xiapin.ime"
         minSdk = 21
         targetSdk = 34
-        versionCode = 8
-        versionName = "0.1.16"
+        versionCode = 10
+        versionName = "0.1.19"
 
         ndk {
             // 與 librime 靜態庫編譯的 ABI 對齊

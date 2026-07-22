@@ -6,4 +6,5 @@
     <string name="subtype_en">蝦拼（英文）</string>
     <string name="hint_deploying">部署中，請稍候…</string>
     <string name="assoc_editor_title">關聯字頻率</string>
+    <string name="translate_settings_title">翻譯設定</string>
 </resources>

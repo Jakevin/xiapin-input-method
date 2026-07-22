@@ -1,33 +1,32 @@
-# 蝦拼輸入法 v0.1.18
+# 蝦拼輸入法 v0.1.19
 
 ## 下載
 
 | 檔案 | 平台 |
 |------|------|
-| `xiapin-rime-v0.1.18.zip` | macOS 鼠鬚管 |
-| `xiapin-android-v0.1.18.apk` | Android（若有打包） |
+| `xiapin-android-v0.1.19.apk` | Android |
+| `xiapin-rime-v0.1.19.zip` | macOS |
 
 https://github.com/Jakevin/xiapin-input-method/releases/latest
 
-## 本版重點：Mac 輸入變慢改善
+## 新功能：LLM 翻譯（OpenAI 相容）
 
-### 已做
+### 設定（App 圖示「翻譯設定」或鍵盤「設定」）
 
-1. **重啟鼠鬚管**：記憶體由 ~414MB 降到 ~63MB  
-2. **清垃圾**：刪多餘 `.bak`、刪 `build/*.txt`（~60MB+）  
-3. **Lua 字根提示加速**：只載 `xiapin_liur`、每字只存最短碼、每鍵最多處理 24 個候選 comment  
-4. **英文方案**：`easy_en` 關閉 `enable_sentence`（大表組句很慢）  
-5. **字典變瘦**：字根／拼音單字表只留常用漢字 U+4E00–9FFF（去掉 ExtA）  
-6. **安裝腳本**：自動清舊備份 + 中間檔；`tools/reload_squirrel.sh` 一鍵重載  
+- **引擎**：免費即時 gtx / **LLM**
+- **API Base URL**（預設可一鍵填）  
+  - OpenRouter：`https://openrouter.ai/api/v1`  
+  - OpenCode Zen：`https://opencode.ai/zen/go/v1`
+- **API Key**
+- **模型名稱**（如 `openai/gpt-4o-mini`）
 
-### 使用
+### 重要：LLM 不即時翻
 
-```bash
-bash install.sh
-bash tools/reload_squirrel.sh
-```
+- 打字時**不會**自動呼叫 API  
+- 必須在翻譯面板按 **「翻譯」** 才會請求  
+- 避免 API 費用爆掉  
 
-或鼠鬚管選單 → 重新部署。
+免費 gtx 模式仍維持 debounce 自動翻譯；也可按「重翻」。
 
 ## 授權
 

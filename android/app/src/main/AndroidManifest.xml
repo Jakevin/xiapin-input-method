@@ -26,15 +26,21 @@
         </service>
 
         <activity
-            android:name=".AssocEditorActivity"
+            android:name=".TranslateSettingsActivity"
             android:exported="true"
-            android:label="@string/assoc_editor_title"
+            android:label="@string/translate_settings_title"
             android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".AssocEditorActivity"
+            android:exported="true"
+            android:label="@string/assoc_editor_title"
+            android:theme="@android:style/Theme.DeviceDefault.NoActionBar" />
 
     </application>
 </manifest>

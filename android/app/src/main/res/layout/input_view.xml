@@ -64,6 +64,41 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/btn_run_translate"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:minWidth="48dp"
+            android:gravity="center"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:layout_marginEnd="4dp"
+            android:text="翻譯"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="#202124"
+            android:background="@drawable/feature_btn_primary"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/btn_translate_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:minWidth="40dp"
+            android:gravity="center"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:layout_marginEnd="4dp"
+            android:text="設定"
+            android:textSize="12sp"
+            android:textColor="#9AA0A6"
+            android:background="@drawable/feature_btn_bg"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/btn_clear_source"
             android:layout_width="wrap_content"
             android:layout_height="32dp"
