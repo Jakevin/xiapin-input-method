@@ -228,7 +228,12 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             default:
                 if (layer == 1) {
                     if (primaryCode > 0) {
-                        service.commitRaw(new String(Character.toChars(primaryCode)));
+                        // 中文混打：數字/大千標點進 Rime（注音聲調與 ㄝㄡㄦ）
+                        if (!englishMode && isZhuyinCodeKey(primaryCode)) {
+                            service.sendKey(primaryCode, 0);
+                        } else {
+                            service.commitRaw(new String(Character.toChars(primaryCode)));
+                        }
                     }
                     return;
                 }
@@ -254,4 +259,12 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
     @Override public void swipeDown() {}
     @Override public void swipeUp() {}
+
+    /** 注音大千會用到的鍵：0-9 , . ; / - */
+    private static boolean isZhuyinCodeKey(int code) {
+        return (code >= '0' && code <= '9')
+                || code == ',' || code == '.' || code == ';'
+                || code == '/' || code == '-';
+    }
+
 }

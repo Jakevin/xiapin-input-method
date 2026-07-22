@@ -1,0 +1,37 @@
+# 僅用於預編 bopomofo prism（注音大千），不加入 schema_list
+# dictionary: terra_pinyin + zhuyin algebra → prism: bopomofo
+schema:
+  schema_id: bopomofo_build
+  name: "注音預編"
+  version: "0.1.0"
+
+engine:
+  processors:
+    - speller
+    - selector
+    - navigator
+    - express_editor
+  segmentors:
+    - abc_segmentor
+  translators:
+    - script_translator
+
+speller:
+  alphabet: "1qaz2wsxedcrfv5tgbyhnujm8ik,9ol.0p;/- 6347"
+  initials: "1qaz2wsxedcrfv5tgbyhnujm8ik,9ol.0p;/-"
+  finals: " 6347"
+  delimiter: "'"
+  # 混打模式：不加 free_order，減少與拼音/字根亂撞
+  algebra:
+    __patch:
+      - zhuyin:/pinyin_to_zhuyin
+      - zhuyin:/abbreviation
+      - zhuyin:/keymap_bopomofo
+
+translator:
+  dictionary: terra_pinyin
+  prism: bopomofo
+  enable_completion: true
+  enable_user_dict: false
+  enable_sentence: false
+  initial_quality: 100

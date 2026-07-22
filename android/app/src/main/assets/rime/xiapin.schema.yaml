@@ -1,17 +1,20 @@
-# Rime schema (Android build)
+# Rime schema (Android) — 蝦注拼
 # encoding: utf-8
 #
-# Android 版主方案：與桌面版相同，但移除 lua_filter（Android librime 未編 Lua 插件）。
-# 字根提示改由 App 層 (BoshiamyComment.java) 查 xiapin_liur.dict.yaml 提供。
+# 同一鍵盤混打：嘸蝦米字根 + 拼音 + 注音（大千鍵位）
+# - table_translator: xiapin.extended（字根優先）
+# - script_translator@pinyin: luna_pinyin
+# - script_translator@zhuyin: terra_pinyin + bopomofo prism
+# 撞碼時 uniquifier 去重；字根 quality 最高。
 
 schema:
   schema_id: xiapin
-  name: "蝦拼"
-  version: "0.1.0-android"
+  name: "蝦注拼"
+  version: "0.2.0-android"
   author:
     - "蝦拼輸入法 project"
   description: |
-    Experimental Pinyin plus openxiami root schema (Android).
+    嘸蝦米字根 + 拼音 + 注音（大千）同鍵混打（Android）。
 
 switches:
   - name: ascii_mode
@@ -40,13 +43,16 @@ engine:
     - punct_translator
     - table_translator
     - script_translator@pinyin
+    - script_translator@zhuyin
   filters:
     - uniquifier
 
+# 字母 + 大千注音用到的數字/標點（聲調 6347、ㄝ, ㄡ. 等）
 speller:
-  alphabet: "abcdefghijklmnopqrstuvwxyz"
+  alphabet: "abcdefghijklmnopqrstuvwxyz0123456789,.;/-"
   delimiter: " '"
   algebra:
+    # 僅輕量拼音修正；注音對應在 bopomofo prism 內
     - xform/([nl])v/$1ü/
     - xform/([nl])ue/$1üe/
     - xform/([jqxy])v/$1u/
@@ -64,6 +70,22 @@ pinyin:
   enable_sentence: true
   enable_user_dict: true
   initial_quality: 100
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
+
+zhuyin:
+  tag: abc
+  dictionary: terra_pinyin
+  prism: bopomofo
+  enable_sentence: true
+  enable_user_dict: false
+  enable_completion: true
+  # 略高於拼音，低於字根：有聲調/大千碼時注音較容易浮出
+  initial_quality: 150
+  preedit_format:
+    - "xlit|1qaz2wsxedcrfv5tgbyhnujm8ik,9ol.0p;/- 6347'|ㄅㄆㄇㄈㄉㄊㄋㄌㄍㄎㄏㄐㄑㄒㄓㄔㄕㄖㄗㄘㄙㄧㄨㄩㄚㄛㄜㄝㄞㄟㄠㄡㄢㄣㄤㄥㄦˉˊˇˋ˙ |"
 
 menu:
   page_size: 9
@@ -73,9 +95,17 @@ punctuator:
 
 key_binder:
   bindings:
+    # 組字中：, . - 送給注音（ㄝ ㄡ ㄦ），不要翻頁
+    - { when: composing, accept: comma, send: comma }
+    - { when: composing, accept: period, send: period }
+    - { when: composing, accept: minus, send: minus }
+    - { when: composing, accept: slash, send: slash }
+    - { when: composing, accept: semicolon, send: semicolon }
+    # 翻頁改用 [ ]
+    - { when: paging, accept: bracketleft, send: Page_Up }
+    - { when: has_menu, accept: bracketright, send: Page_Down }
+    - { when: has_menu, accept: equal, send: Page_Down }
     - { when: has_menu, accept: space, send: space }
-    - { when: paging, accept: comma, send: Page_Up }
-    - { when: has_menu, accept: period, send: Page_Down }
     - { when: always, accept: Shift+space, select: xiapin_english }
 
 recognizer:
