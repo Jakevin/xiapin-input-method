@@ -1,10 +1,15 @@
-# 蝦注拼 v0.2.4
+# 蝦注拼 v0.2.6
 
-## 數字列固定在鍵盤區
+## 鍵盤版面修正（不再怪）
 
-- 數字鍵**移出**字母 KeyboardView，改放在**候選列下方、字母鍵上方**的固定列
-- 不再因 KeyboardView 裁切／高度變化而突然消失
-- 雙標籤：`1ㄅ 2ㄉ 3ˇ 4ˋ 5ㄓ 6ˊ 7˙ 8ㄚ 9ㄞ 0ㄢ`
-- 英文模式自動隱藏數字列
+先前問題：
+- 數字列像外掛一條，和字母鍵不連貫
+- 注音雙行繪製被裁切，看起來像亂碼
 
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.4
+現在：
+- **數字 + 字母同一套鍵帽**（統一風格）
+- 主字置中、**注音右上小標**
+- 使用 Noto CJK 字體，注音字形完整
+- `onMeasure` 保證 5 列不被裁掉
+
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.6

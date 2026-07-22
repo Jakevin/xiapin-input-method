@@ -17,7 +17,6 @@ public class XiapinIME extends InputMethodService {
 
     private RimeJNI rime;
     private XiapinKeyboardView keyboardView;
-    private android.view.View numberRow;
     private CandidateView candidateView;
     private boolean deployed = false;
     private BoshiamyComment boshiamy;
@@ -69,8 +68,6 @@ public class XiapinIME extends InputMethodService {
     public View onCreateInputView() {
         View root = getLayoutInflater().inflate(R.layout.input_view, null);
         keyboardView = root.findViewById(R.id.keyboard);
-        numberRow = root.findViewById(R.id.number_row);
-        setupNumberRow(root);
         candidateView = root.findViewById(R.id.candidates);
         keyboardView.setService(this);
         candidateView.setService(this);
@@ -651,7 +648,6 @@ if (btnTranslateSettings != null) {
 
     @Override
     public void onStartInputView(EditorInfo info, boolean restarting) {
-        updateNumberRowVisibility();
 
         super.onStartInputView(info, restarting);
         ensureDeployed();
@@ -1039,30 +1035,6 @@ if (btnTranslateSettings != null) {
     }
 
 
-    /** 候選下方固定數字列 → 注音聲調／聲母；中文顯示、英文隱藏 */
-    private void setupNumberRow(android.view.View root) {
-        if (root == null) return;
-        final int[] ids = {
-                R.id.num_1, R.id.num_2, R.id.num_3, R.id.num_4, R.id.num_5,
-                R.id.num_6, R.id.num_7, R.id.num_8, R.id.num_9, R.id.num_0
-        };
-        final int[] codes = {
-                '1', '2', '3', '4', '5', '6', '7', '8', '9', '0'
-        };
-        for (int i = 0; i < ids.length; i++) {
-            android.view.View v = root.findViewById(ids[i]);
-            if (v == null) continue;
-            final int code = codes[i];
-            v.setOnClickListener(x -> sendKey(code, 0));
-        }
-        updateNumberRowVisibility();
-    }
-
-    private void updateNumberRowVisibility() {
-        if (numberRow == null) return;
-        boolean show = !isEnglishMode();
-        numberRow.setVisibility(show ? android.view.View.VISIBLE : android.view.View.GONE);
-    }
 
     public boolean isEnglishMode() {
         return "xiapin_english".equals(currentSchema);
@@ -1072,8 +1044,7 @@ if (btnTranslateSettings != null) {
         if (keyboardView != null) {
             // 同步中/英：中文關 Shift，英文才可用大寫
             keyboardView.setEnglishMode(isEnglishMode());
-            updateNumberRowVisibility();
-        }
+            }
     }
 
     /**

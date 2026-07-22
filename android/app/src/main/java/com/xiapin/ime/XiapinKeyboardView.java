@@ -32,6 +32,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     private final Paint shiftFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shiftTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint zhuyinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Typeface zhuyinTypeface;
     private final Paint letterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF shiftFillRect = new RectF();
 
@@ -88,8 +89,13 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         shiftTextPaint.setFakeBoldText(true);
         zhuyinPaint.setColor(ZHUYIN_COLOR);
         zhuyinPaint.setTextAlign(Paint.Align.CENTER);
-        zhuyinPaint.setTypeface(Typeface.DEFAULT);
         zhuyinPaint.setAntiAlias(true);
+        zhuyinTypeface = loadZhuyinTypeface();
+        if (zhuyinTypeface != null) {
+            zhuyinPaint.setTypeface(zhuyinTypeface);
+        } else {
+            zhuyinPaint.setTypeface(Typeface.DEFAULT);
+        }
         letterPaint.setColor(0xFFE8EAED);
         letterPaint.setTextAlign(Paint.Align.CENTER);
         letterPaint.setTypeface(Typeface.DEFAULT);
@@ -97,6 +103,19 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
     public void setService(XiapinIME svc) { this.service = svc; }
+
+    /** 確保 5 列（含數字）完整量測，不被系統裁掉頂列 */
+    @Override
+    public void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        Keyboard kb = getKeyboard();
+        if (kb == null) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
+        int width = android.view.View.MeasureSpec.getSize(widthMeasureSpec);
+        int height = kb.getHeight() + getPaddingTop() + getPaddingBottom();
+        setMeasuredDimension(width, Math.max(height, getSuggestedMinimumHeight()));
+    }
 
     private Keyboard currentLettersKb() {
         return englishMode ? lettersEnKb : lettersZhKb;
@@ -146,7 +165,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
 
-    /** 中文鍵：有注音的鍵清空 label，改由 onDraw 畫 英文+注音 */
+    /** 中文鍵：label 只放主字（英/數），注音由 onDraw 右上角小標 */
     private void prepareZhuyinKeyLabels() {
         if (englishMode) return;
         Keyboard kb = getKeyboard();
@@ -155,14 +174,27 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             if (key.codes == null || key.codes.length == 0) continue;
             int code = key.codes[0];
             if (ZHUYIN.get(code) == null) continue;
-            // 保留功能鍵；字母/數字/標點清空後自繪
-            if ((code >= 'a' && code <= 'z') || (code >= '0' && code <= '9')
-                    || code == ',' || code == '.' || code == ';' || code == '/' || code == '-') {
-                key.label = " ";
-                key.icon = null;
+            if (code >= 'a' && code <= 'z') {
+                key.label = String.valueOf((char) code);
+            } else if (code >= '0' && code <= '9') {
+                key.label = String.valueOf((char) code);
+            } else if (code == ',') {
+                key.label = ",";
+            } else if (code == '.') {
+                key.label = ".";
+            } else if (code == ';') {
+                key.label = ";";
+            } else if (code == '/') {
+                key.label = "/";
+            } else if (code == '-') {
+                key.label = "-";
+            } else {
+                continue;
             }
+            key.icon = null;
         }
     }
+
 
     private boolean isUpper() {
         return englishMode && (shiftState == 1 || shiftState == 2);
@@ -251,38 +283,40 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         }
     }
 
-    /** 鍵帽：上方英文／數字，下方注音 */
+    /**
+     * 只畫注音小標（右上角）；主字交給 super 的 key.label，避免雙重繪製裁切。
+     */
     private void drawZhuyinHints(Canvas canvas) {
         Keyboard kb = getKeyboard();
         if (kb == null) return;
         float dens = getResources().getDisplayMetrics().density;
-        letterPaint.setTextSize(16f * dens);
         zhuyinPaint.setTextSize(12f * dens);
+        zhuyinPaint.setColor(0xFFB8C0C8);
+        zhuyinPaint.setTextAlign(Paint.Align.RIGHT);
+        zhuyinPaint.setFakeBoldText(false);
+        if (zhuyinTypeface != null) zhuyinPaint.setTypeface(zhuyinTypeface);
         int padL = getPaddingLeft();
         int padT = getPaddingTop();
-        Paint.FontMetrics lfm = letterPaint.getFontMetrics();
         Paint.FontMetrics zfm = zhuyinPaint.getFontMetrics();
+        float inset = 6f * dens;
+
         for (Keyboard.Key key : kb.getKeys()) {
             if (key.codes == null || key.codes.length == 0) continue;
             int code = key.codes[0];
             String zy = ZHUYIN.get(code);
             if (zy == null) continue;
-            String main;
-            if (code >= 'a' && code <= 'z') main = String.valueOf((char) code);
-            else if (code >= '0' && code <= '9') main = String.valueOf((char) code);
-            else if (code == ',') main = "，";
-            else if (code == '.') main = "。";
-            else if (code == ';') main = ";";
-            else if (code == '/') main = "/";
-            else if (code == '-') main = "-";
-            else continue;
-            float cx = key.x + padL + key.width / 2f;
-            float midY = key.y + padT + key.height * 0.42f;
-            float letterY = midY - (lfm.ascent + lfm.descent) / 2f;
-            float zyY = key.y + padT + key.height * 0.78f - (zfm.ascent + zfm.descent) / 2f;
-            canvas.drawText(main, cx, letterY, letterPaint);
-            canvas.drawText(zy, cx, zyY, zhuyinPaint);
+            float left = key.x + padL;
+            float top = key.y + padT;
+            float zx = left + key.width - inset;
+            // 右上角：baseline 在鍵頂下約 14dp
+            float zyBase = top + 14f * dens;
+            // 安全：不超出鍵底
+            if (zyBase + zfm.descent > top + key.height - 2f * dens) {
+                zyBase = top + key.height - 2f * dens - zfm.descent;
+            }
+            canvas.drawText(zy, zx, zyBase, zhuyinPaint);
         }
+        zhuyinPaint.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
@@ -340,6 +374,33 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
     @Override public void swipeDown() {}
     @Override public void swipeUp() {}
+
+    /** Noto CJK 才有完整注音字形 */
+    private static Typeface loadZhuyinTypeface() {
+        String[] paths = {
+                "/system/fonts/NotoSansCJK-Regular.ttc",
+                "/system_ext/fonts/NotoSansCJK-Regular.ttc",
+        };
+        for (String path : paths) {
+            try {
+                java.io.File f = new java.io.File(path);
+                if (!f.exists()) continue;
+                if (android.os.Build.VERSION.SDK_INT >= 26) {
+                    for (int i = 0; i < 5; i++) {
+                        try {
+                            Typeface.Builder b = new Typeface.Builder(path);
+                            b.setTtcIndex(i);
+                            Typeface tf = b.build();
+                            if (tf != null) return tf;
+                        } catch (Throwable ignored) {}
+                    }
+                }
+                Typeface tf = Typeface.createFromFile(f);
+                if (tf != null) return tf;
+            } catch (Throwable ignored) {}
+        }
+        return Typeface.DEFAULT;
+    }
 
     private static boolean isZhuyinCodeKey(int code) {
         return (code >= '0' && code <= '9')
