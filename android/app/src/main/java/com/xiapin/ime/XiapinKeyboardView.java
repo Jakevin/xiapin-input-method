@@ -8,14 +8,12 @@ import android.graphics.Typeface;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 
 /**
  * 軟鍵盤：
- *  - 中文：無 Shift
+ *  - 中文：鍵帽英文 + 大千注音（自繪）
  *  - 英文：⇧ 三態
- *      0 全小寫 — ⇧（一般鍵色）
- *      1 首字大寫 — ⇪（打一個字母後回 0）
- *      2 全大寫 — ⇧ + 藍色填滿（畫在 super 之後，避免被 key_bg 蓋住）
  *
  * codes：-1 中/英、-2 123、-3 Shift、-4 Enter、-5 Backspace
  */
@@ -33,11 +31,36 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
 
     private final Paint shiftFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shiftTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint zhuyinPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint letterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF shiftFillRect = new RectF();
 
-    private static final int SHIFT_CAPS_FILL = 0xFF5B9BFF; // 全大寫填滿藍
-    private static final int SHIFT_ONCE_FILL = 0xFF5A6270; // 首字略亮灰
+    private static final int SHIFT_CAPS_FILL = 0xFF5B9BFF;
     private static final int SHIFT_TEXT_ON_FILL = 0xFFFFFFFF;
+    private static final int ZHUYIN_COLOR = 0xFF9AA0A6;
+
+    /** 大千注音副標（依 key code） */
+    private static final SparseArray<String> ZHUYIN = new SparseArray<>();
+    static {
+        // 字母列
+        ZHUYIN.put('q', "ㄆ"); ZHUYIN.put('w', "ㄊ"); ZHUYIN.put('e', "ㄍ");
+        ZHUYIN.put('r', "ㄐ"); ZHUYIN.put('t', "ㄔ"); ZHUYIN.put('y', "ㄗ");
+        ZHUYIN.put('u', "ㄧ"); ZHUYIN.put('i', "ㄛ"); ZHUYIN.put('o', "ㄟ");
+        ZHUYIN.put('p', "ㄣ");
+        ZHUYIN.put('a', "ㄇ"); ZHUYIN.put('s', "ㄋ"); ZHUYIN.put('d', "ㄎ");
+        ZHUYIN.put('f', "ㄑ"); ZHUYIN.put('g', "ㄕ"); ZHUYIN.put('h', "ㄘ");
+        ZHUYIN.put('j', "ㄨ"); ZHUYIN.put('k', "ㄜ"); ZHUYIN.put('l', "ㄠ");
+        ZHUYIN.put('z', "ㄈ"); ZHUYIN.put('x', "ㄌ"); ZHUYIN.put('c', "ㄏ");
+        ZHUYIN.put('v', "ㄒ"); ZHUYIN.put('b', "ㄖ"); ZHUYIN.put('n', "ㄙ");
+        ZHUYIN.put('m', "ㄩ");
+        ZHUYIN.put(',', "ㄝ"); ZHUYIN.put('.', "ㄡ");
+        // 數字列（123 層／聲調）
+        ZHUYIN.put('1', "ㄅ"); ZHUYIN.put('2', "ㄉ"); ZHUYIN.put('3', "ˇ");
+        ZHUYIN.put('4', "ˋ"); ZHUYIN.put('5', "ㄓ"); ZHUYIN.put('6', "ˊ");
+        ZHUYIN.put('7', "˙"); ZHUYIN.put('8', "ㄚ"); ZHUYIN.put('9', "ㄞ");
+        ZHUYIN.put('0', "ㄢ");
+        ZHUYIN.put('-', "ㄦ"); ZHUYIN.put(';', "ㄤ"); ZHUYIN.put('/', "ㄥ");
+    }
 
     public XiapinKeyboardView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -54,6 +77,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         lettersEnKb = new Keyboard(getContext(), R.xml.qwerty);
         symbolsKb = new Keyboard(getContext(), R.xml.symbols);
         setKeyboard(lettersZhKb);
+        prepareZhuyinKeyLabels();
         setOnKeyboardActionListener(this);
         setPreviewEnabled(false);
         setProximityCorrectionEnabled(true);
@@ -62,6 +86,14 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         shiftTextPaint.setTextAlign(Paint.Align.CENTER);
         shiftTextPaint.setTypeface(Typeface.DEFAULT_BOLD);
         shiftTextPaint.setFakeBoldText(true);
+        zhuyinPaint.setColor(ZHUYIN_COLOR);
+        zhuyinPaint.setTextAlign(Paint.Align.CENTER);
+        zhuyinPaint.setTypeface(Typeface.DEFAULT);
+        zhuyinPaint.setAntiAlias(true);
+        letterPaint.setColor(0xFFE8EAED);
+        letterPaint.setTextAlign(Paint.Align.CENTER);
+        letterPaint.setTypeface(Typeface.DEFAULT);
+        letterPaint.setAntiAlias(true);
     }
 
     public void setService(XiapinIME svc) { this.service = svc; }
@@ -79,6 +111,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             if (englishMode) applyShiftVisual();
         }
         updateLangButton(englishMode);
+        prepareZhuyinKeyLabels();
         invalidateAllKeys();
     }
 
@@ -93,6 +126,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             if (english) applyShiftVisual();
         }
         updateLangButton(english);
+        prepareZhuyinKeyLabels();
         invalidateAllKeys();
         invalidate();
     }
@@ -111,11 +145,29 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         invalidateAllKeys();
     }
 
+
+    /** 中文鍵：有注音的鍵清空 label，改由 onDraw 畫 英文+注音 */
+    private void prepareZhuyinKeyLabels() {
+        if (englishMode) return;
+        Keyboard kb = getKeyboard();
+        if (kb == null) return;
+        for (Keyboard.Key key : kb.getKeys()) {
+            if (key.codes == null || key.codes.length == 0) continue;
+            int code = key.codes[0];
+            if (ZHUYIN.get(code) == null) continue;
+            // 保留功能鍵；字母/數字/標點清空後自繪
+            if ((code >= 'a' && code <= 'z') || (code >= '0' && code <= '9')
+                    || code == ',' || code == '.' || code == ';' || code == '/' || code == '-') {
+                key.label = " ";
+                key.icon = null;
+            }
+        }
+    }
+
     private boolean isUpper() {
         return englishMode && (shiftState == 1 || shiftState == 2);
     }
 
-    /** 0 → 1 → 2 → 0 */
     private void cycleShift() {
         if (!englishMode) return;
         shiftState = (shiftState + 1) % 3;
@@ -132,13 +184,11 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             if (key.codes == null || key.codes.length == 0) continue;
             int code = key.codes[0];
             if (code == -3) {
-                // 0: ⇧  1: ⇪ 首字大寫  2: ⇧（填滿在 onDraw 後畫）
                 if (shiftState == 0) {
                     key.label = "⇧";
                 } else if (shiftState == 1) {
                     key.label = "⇪";
                 } else {
-                    // 全大寫：label 先清空，onDraw 自己畫白字 ⇧ 在藍底上，避免疊兩層
                     key.label = " ";
                 }
                 key.icon = null;
@@ -160,45 +210,78 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         }
     }
 
-    /**
-     * 必須在 super.onDraw 之後畫填滿色，否則會被 key_bg 蓋掉。
-     * 全大寫：藍底 + 白 ⇧；首字大寫：略亮灰底（⇪ 仍由 super 畫）。
-     */
     @Override
     public void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
-        if (!englishMode || layer != 0 || shiftState == 0) return;
-        if (lettersEnKb == null || getKeyboard() != lettersEnKb) return;
+        // 英文 Shift 藍底
+        if (englishMode && layer == 0 && shiftState == 2
+                && lettersEnKb != null && getKeyboard() == lettersEnKb) {
+            drawShiftCaps(canvas);
+        }
 
+        // 中文：英文鍵 + 注音副標
+        if (!englishMode) {
+            drawZhuyinHints(canvas);
+        }
+    }
+
+    private void drawShiftCaps(Canvas canvas) {
         float dens = getResources().getDisplayMetrics().density;
         float inset = 3f * dens;
         float radius = 8f * dens;
         int padL = getPaddingLeft();
         int padT = getPaddingTop();
-
         for (Keyboard.Key key : lettersEnKb.getKeys()) {
             if (key.codes == null || key.codes.length == 0 || key.codes[0] != -3) continue;
-
             float l = key.x + padL + inset;
             float t = key.y + padT + inset;
             float r = key.x + padL + key.width - inset;
             float b = key.y + padT + key.height - inset;
             shiftFillRect.set(l, t, r, b);
-
-            if (shiftState == 2) {
-                // 全大寫：藍色填滿 + 白 ⇧
-                shiftFillPaint.setColor(SHIFT_CAPS_FILL);
-                canvas.drawRoundRect(shiftFillRect, radius, radius, shiftFillPaint);
-                shiftTextPaint.setTextSize(22f * dens);
-                shiftTextPaint.setColor(SHIFT_TEXT_ON_FILL);
-                Paint.FontMetrics fm = shiftTextPaint.getFontMetrics();
-                float cx = (l + r) / 2f;
-                float cy = (t + b) / 2f - (fm.ascent + fm.descent) / 2f;
-                canvas.drawText("⇧", cx, cy, shiftTextPaint);
-            }
-            // 首字大寫 (state 1)：只用 ⇪ 標籤，不塗藍
+            shiftFillPaint.setColor(SHIFT_CAPS_FILL);
+            canvas.drawRoundRect(shiftFillRect, radius, radius, shiftFillPaint);
+            shiftTextPaint.setTextSize(22f * dens);
+            shiftTextPaint.setColor(SHIFT_TEXT_ON_FILL);
+            Paint.FontMetrics fm = shiftTextPaint.getFontMetrics();
+            float cx = (l + r) / 2f;
+            float cy = (t + b) / 2f - (fm.ascent + fm.descent) / 2f;
+            canvas.drawText("⇧", cx, cy, shiftTextPaint);
             break;
+        }
+    }
+
+    /** 鍵帽：上方英文／數字，下方注音 */
+    private void drawZhuyinHints(Canvas canvas) {
+        Keyboard kb = getKeyboard();
+        if (kb == null) return;
+        float dens = getResources().getDisplayMetrics().density;
+        letterPaint.setTextSize(18f * dens);
+        zhuyinPaint.setTextSize(13f * dens);
+        int padL = getPaddingLeft();
+        int padT = getPaddingTop();
+        Paint.FontMetrics lfm = letterPaint.getFontMetrics();
+        Paint.FontMetrics zfm = zhuyinPaint.getFontMetrics();
+        for (Keyboard.Key key : kb.getKeys()) {
+            if (key.codes == null || key.codes.length == 0) continue;
+            int code = key.codes[0];
+            String zy = ZHUYIN.get(code);
+            if (zy == null) continue;
+            String main;
+            if (code >= 'a' && code <= 'z') main = String.valueOf((char) code);
+            else if (code >= '0' && code <= '9') main = String.valueOf((char) code);
+            else if (code == ',') main = "，";
+            else if (code == '.') main = "。";
+            else if (code == ';') main = ";";
+            else if (code == '/') main = "/";
+            else if (code == '-') main = "-";
+            else continue;
+            float cx = key.x + padL + key.width / 2f;
+            float midY = key.y + padT + key.height * 0.42f;
+            float letterY = midY - (lfm.ascent + lfm.descent) / 2f;
+            float zyY = key.y + padT + key.height * 0.78f - (zfm.ascent + zfm.descent) / 2f;
+            canvas.drawText(main, cx, letterY, letterPaint);
+            canvas.drawText(zy, cx, zyY, zhuyinPaint);
         }
     }
 
@@ -216,7 +299,6 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
                 cycleShift();
                 return;
             case -5: {
-                // isRepeatable=true 時會連續觸發 onKey；sendKey 內處理原文/App 刪除
                 service.sendKey(0xff08, 0);
                 return;
             }
@@ -228,7 +310,6 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             default:
                 if (layer == 1) {
                     if (primaryCode > 0) {
-                        // 中文混打：數字/大千標點進 Rime（注音聲調與 ㄝㄡㄦ）
                         if (!englishMode && isZhuyinCodeKey(primaryCode)) {
                             service.sendKey(primaryCode, 0);
                         } else {
@@ -260,11 +341,9 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     @Override public void swipeDown() {}
     @Override public void swipeUp() {}
 
-    /** 注音大千會用到的鍵：0-9 , . ; / - */
     private static boolean isZhuyinCodeKey(int code) {
         return (code >= '0' && code <= '9')
                 || code == ',' || code == '.' || code == ';'
                 || code == '/' || code == '-';
     }
-
 }

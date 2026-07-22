@@ -1,6 +1,11 @@
-# 蝦注拼 v0.2.1
+# 蝦注拼 v0.2.2
 
-- 中文主鍵盤拿掉頂列數字（與 123 層重覆）
-- 注音聲調改由 **123** 層輸入（3ˇ 4ˋ 6ˊ 7˙）
+## 鍵盤鍵帽：英文 + 注音
 
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.1
+中文鍵盤每個字母鍵顯示：
+- **上**：英文字母（q / a / …）
+- **下**：大千注音（ㄆ / ㄇ / …）
+
+123 層數字鍵同樣顯示注音聲母／聲調（1ㄅ 3ˇ 4ˋ 6ˊ…）。
+
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.2

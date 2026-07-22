@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 中文／混打：數字聲調改由 123 層輸入（避免與 123 重覆） -->
+<!-- 中文／混打：label 只寫英文；注音由 XiapinKeyboardView 自繪 -->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="8.6%p"
     android:horizontalGap="0.8%p"
