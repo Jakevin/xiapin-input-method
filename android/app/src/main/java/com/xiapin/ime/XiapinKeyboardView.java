@@ -290,7 +290,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         Keyboard kb = getKeyboard();
         if (kb == null) return;
         float dens = getResources().getDisplayMetrics().density;
-        zhuyinPaint.setTextSize(12f * dens);
+        zhuyinPaint.setTextSize(13f * dens);
         zhuyinPaint.setColor(0xFFB8C0C8);
         zhuyinPaint.setTextAlign(Paint.Align.RIGHT);
         zhuyinPaint.setFakeBoldText(false);
