@@ -1,25 +1,9 @@
-# 蝦拼 v0.1.21 — LLM 翻譯修復
+# 蝦拼 v0.1.22
 
-## 問題
+## LLM 翻譯：停 3 秒自動翻
 
-OpenRouter `openrouter/free` 等免費模型常回：
-- `message.content = null`
-- 真正內容在 `reasoning`，且先吐英文思考
-- `max_tokens` 太小時 `finish_reason=length` 直接失敗
+- 輸入原文後**停止約 3 秒**會自動呼叫 LLM（持續打字會重計時）
+- 仍可按「翻譯」立刻翻
+- 免費 gtx 仍為約 0.3 秒 debounce
 
-## 修正
-
-- 安全解析 content（避免字串 `"null"`）
-- content 空時改讀 `reasoning`
-- 從引號／行內挑出日文中文譯文
-- `max_tokens` 至少 1024
-
-## 建議
-
-免費路由不穩，正式用可改具體模型，例如：
-- `openai/gpt-4o-mini`
-- `google/gemini-2.0-flash-001`
-
-仍須按「翻譯」手動觸發。
-
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.1.21
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.1.22

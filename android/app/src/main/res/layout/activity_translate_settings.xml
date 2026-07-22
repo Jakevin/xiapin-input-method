@@ -45,7 +45,7 @@
                 android:id="@+id/rb_llm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="LLM（OpenAI 相容）— 僅手動按「翻譯」"
+                android:text="LLM（OpenAI 相容）— 停 3 秒自動翻"
                 android:textColor="#E8EAED" />
         </RadioGroup>
 
@@ -144,7 +144,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="注意：LLM 模式不會在打字時自動翻譯，必須在鍵盤按「翻譯」才會呼叫 API。"
+            android:text="注意：LLM 模式在輸入停止約 3 秒後才自動翻譯（持續打字會重計時），避免每字打 API。也可按「翻譯」立即翻。"
             android:textColor="#FBBF24"
             android:textSize="12sp"
             android:paddingBottom="16dp" />

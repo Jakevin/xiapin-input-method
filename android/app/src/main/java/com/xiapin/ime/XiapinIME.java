@@ -144,12 +144,8 @@ public class XiapinIME extends InputMethodService {
                     renderTranslateResults();
                     updateTranslateUi();
                 } else {
-                    // LLM 模式不自動翻（省費用）；gtx 才 debounce
-                    if (!TranslatePrefs.isLlm(XiapinIME.this)) {
-                        scheduleTranslate(now);
-                    } else {
-                        cancelPendingTranslate();
-                    }
+                    // gtx 短延遲；LLM 停頓 3 秒後自動翻（可取消重計時）
+                    scheduleTranslate(now);
                     updateTranslateUi();
                 }
             }
@@ -285,14 +281,10 @@ public class XiapinIME extends InputMethodService {
         langPairIndex = (langPairIndex + 1) % TranslateHelper.TARGETS.length;
         updateTranslateUi();
         if (translateMode && translateSource != null && !translateSource.isEmpty()) {
-            if (!TranslatePrefs.isLlm(this)) {
-                scheduleTranslate(translateSource);
-            } else {
-                // LLM：換語言後需再按「翻譯」
-                translateOptions = new java.util.ArrayList<>();
-                translateResult = "";
-                renderTranslateResults();
-            }
+            translateOptions = new java.util.ArrayList<>();
+            translateResult = "";
+            renderTranslateResults();
+            scheduleTranslate(translateSource);
         }
     }
 
@@ -350,13 +342,18 @@ public class XiapinIME extends InputMethodService {
                 if (translateSource != null && !translateSource.isEmpty()
                         && (translateOptions == null || translateOptions.isEmpty())
                         && pendingTranslate != null) {
-                    txtTranslateHint.setText("翻譯中…");
-                    txtTranslateHint.setTextColor(0xFF9AA0A6);
+                    boolean llmPend = TranslatePrefs.isLlm(this);
+                    txtTranslateHint.setText(llmPend ? "停頓中，3 秒後翻譯…" : "翻譯中…");
+                    txtTranslateHint.setTextColor(llmPend ? 0xFFFBBF24 : 0xFF9AA0A6);
                 } else if (translateOptions != null && !translateOptions.isEmpty()) {
                     txtTranslateHint.setText("點譯文上屏");
                     txtTranslateHint.setTextColor(0xFF8AB4F8);
                 } else if (TranslatePrefs.isLlm(this)) {
-                    txtTranslateHint.setText("LLM→" + target.label + " · 按「翻譯」才呼叫 API");
+                    if (pendingTranslate != null) {
+                        txtTranslateHint.setText("LLM→" + target.label + " · 停 3 秒後自動翻");
+                    } else {
+                        txtTranslateHint.setText("LLM→" + target.label + " · 停 3 秒自動 / 可按翻譯");
+                    }
                     txtTranslateHint.setTextColor(0xFFFBBF24);
                 } else {
                     txtTranslateHint.setText("自動→" + target.label + " · 點譯文才送出");
@@ -426,19 +423,23 @@ public class XiapinIME extends InputMethodService {
     /** debounce 280ms，避免每個字狂打 API；結果只進譯文列 */
     private void scheduleTranslate(final String source) {
         if (!translateMode || source == null || source.trim().isEmpty()) return;
-        // 安全閘：LLM 絕不自動 schedule
-        if (TranslatePrefs.isLlm(this)) return;
         cancelPendingTranslate();
         final String src = source.trim();
+        final boolean llm = TranslatePrefs.isLlm(this);
+        // gtx：280ms；LLM：停頓 3 秒才打 API（避免每字燒錢）
+        final long delayMs = llm ? 3000L : 280L;
         pendingTranslate = () -> {
             pendingTranslate = null;
+            // 再次確認原文沒變、模式仍開
+            if (!translateMode) return;
+            String cur = translateSource == null ? "" : translateSource.trim();
+            if (!src.equals(cur)) return;
             requestTranslateNow(src);
         };
-        translateHandler.postDelayed(pendingTranslate, 280);
+        translateHandler.postDelayed(pendingTranslate, delayMs);
         updateTranslateUi();
-        // 等待中顯示提示 chip
         if (translateResultRow != null && (translateOptions == null || translateOptions.isEmpty())) {
-            showTranslatePlaceholder("…");
+            showTranslatePlaceholder(llm ? "3秒後翻譯…" : "…");
         }
     }
 
