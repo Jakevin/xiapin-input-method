@@ -228,6 +228,13 @@
         android:layout_height="1dp"
         android:background="#2a2a2a" />
 
+    <!-- 固定數字列：候選下方、字母鍵盤上方（不隨 KeyboardView 裁切） -->
+    <include
+        android:id="@+id/number_row"
+        layout="@layout/number_row"
+        android:layout_width="match_parent"
+        android:layout_height="48dp" />
+
     <com.xiapin.ime.XiapinKeyboardView
         android:id="@+id/keyboard"
         android:layout_width="match_parent"
