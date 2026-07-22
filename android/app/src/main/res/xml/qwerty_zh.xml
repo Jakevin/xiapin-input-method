@@ -1,24 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- 中文／混打：注音大千需要數字列（聲調與聲母） -->
+<!-- 中文／混打：數字聲調改由 123 層輸入（避免與 123 重覆） -->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="8.6%p"
     android:horizontalGap="0.8%p"
-    android:verticalGap="6dp"
-    android:keyHeight="52dp">
-
-    <!-- 大千：1ㄅ 2ㄉ 3ˇ 4ˋ 5ㄓ 6ˊ 7˙ 8ㄚ 9ㄞ 0ㄢ -->
-    <Row>
-        <Key android:codes="49" android:keyLabel="1ˉ" android:keyEdgeFlags="left" />
-        <Key android:codes="50" android:keyLabel="2" />
-        <Key android:codes="51" android:keyLabel="3ˇ" />
-        <Key android:codes="52" android:keyLabel="4ˋ" />
-        <Key android:codes="53" android:keyLabel="5" />
-        <Key android:codes="54" android:keyLabel="6ˊ" />
-        <Key android:codes="55" android:keyLabel="7˙" />
-        <Key android:codes="56" android:keyLabel="8" />
-        <Key android:codes="57" android:keyLabel="9" />
-        <Key android:codes="48" android:keyLabel="0" android:keyEdgeFlags="right" />
-    </Row>
+    android:verticalGap="8dp"
+    android:keyHeight="60dp">
 
     <Row>
         <Key android:codes="113" android:keyLabel="q" android:keyEdgeFlags="left" />
@@ -59,7 +45,6 @@
 
     <Row>
         <Key android:codes="-1" android:keyLabel="中" android:keyWidth="10%p" android:keyEdgeFlags="left" />
-        <!-- ASCII , . 給注音 ㄝ ㄡ；顯示全形標點 -->
         <Key android:codes="44" android:keyLabel="，" android:keyWidth="9%p" />
         <Key android:codes="32" android:keyLabel="空格" android:keyWidth="56%p" />
         <Key android:codes="46" android:keyLabel="。" android:keyWidth="9%p" />
