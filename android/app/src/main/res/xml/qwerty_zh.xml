@@ -2,7 +2,7 @@
 <!--
   每列：鍵寬總和 + (n-1)×gap ≤ 100%
   default gap = 0.9%p
-  符 在底列；第四排只有 z–m , . /
+  第四排 10 鍵撐滿整列（不再左右留白）
 -->
 <Keyboard xmlns:android="http://schemas.android.com/apk/res/android"
     android:keyWidth="9.1%p"
@@ -10,7 +10,7 @@
     android:verticalGap="10dp"
     android:keyHeight="58dp">
 
-    <!-- 10 鍵：10×9.1 + 9×0.9 = 99.1 -->
+    <!-- 10×9.1 + 9×0.9 = 99.1 -->
     <Row>
         <Key android:codes="49" android:keyLabel="1" android:keyEdgeFlags="left" />
         <Key android:codes="50" android:keyLabel="2" />
@@ -50,24 +50,21 @@
         <Key android:codes="59" android:keyLabel=";" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- 10 鍵略內縮：左 4.5 + 10×8.7 + 9×0.9 = 4.5+87+8.1 = 99.6 -->
+    <!-- 第四排 10 鍵撐滿：10×9.1 + 9×0.9 = 99.1（與 1–0 / q–p 同寬） -->
     <Row>
-        <Key android:codes="122" android:keyLabel="z"
-            android:horizontalGap="4.5%p"
-            android:keyWidth="8.7%p"
-            android:keyEdgeFlags="left" />
-        <Key android:codes="120" android:keyLabel="x" android:keyWidth="8.7%p" />
-        <Key android:codes="99" android:keyLabel="c" android:keyWidth="8.7%p" />
-        <Key android:codes="118" android:keyLabel="v" android:keyWidth="8.7%p" />
-        <Key android:codes="98" android:keyLabel="b" android:keyWidth="8.7%p" />
-        <Key android:codes="110" android:keyLabel="n" android:keyWidth="8.7%p" />
-        <Key android:codes="109" android:keyLabel="m" android:keyWidth="8.7%p" />
-        <Key android:codes="44" android:keyLabel="," android:keyWidth="8.7%p" />
-        <Key android:codes="46" android:keyLabel="." android:keyWidth="8.7%p" />
-        <Key android:codes="47" android:keyLabel="/" android:keyWidth="8.7%p" android:keyEdgeFlags="right" />
+        <Key android:codes="122" android:keyLabel="z" android:keyEdgeFlags="left" />
+        <Key android:codes="120" android:keyLabel="x" />
+        <Key android:codes="99" android:keyLabel="c" />
+        <Key android:codes="118" android:keyLabel="v" />
+        <Key android:codes="98" android:keyLabel="b" />
+        <Key android:codes="110" android:keyLabel="n" />
+        <Key android:codes="109" android:keyLabel="m" />
+        <Key android:codes="44" android:keyLabel="," />
+        <Key android:codes="46" android:keyLabel="." />
+        <Key android:codes="47" android:keyLabel="/" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- 6 鍵：W≤95.5（因 5×0.9 gap）。9.5+9.5+44+9.5+12+11=95.5 → 100 -->
+    <!-- 6 鍵：9.5+9.5+44+9.5+12+11=95.5 + 5×0.9=100 -->
     <Row>
         <Key android:codes="-1" android:keyLabel="中" android:keyWidth="9.5%p" android:keyEdgeFlags="left" />
         <Key android:codes="-2" android:keyLabel="符" android:keyWidth="9.5%p" />
