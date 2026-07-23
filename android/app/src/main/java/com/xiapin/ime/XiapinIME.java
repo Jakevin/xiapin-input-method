@@ -864,18 +864,22 @@ if (btnTranslateSettings != null) {
         return extraRootCandidate;
     }
 
-    /** 字母 ↔ 符號（保留相容） */
+    /** 舊 API：等同切符號層 */
     public void toggleKeyboardLayer() {
-        cycleInputMode();
+        toggleSymbolsLayer();
     }
 
     /**
-     * 拼 → 注 → 英 → 符 → 拼
-     * 三套輸入邏輯分開，符號層共用。
+     * 拼 → 注 → 英 → 拼（不含符）
      */
     public void cycleInputMode() {
         int mode = keyboardView != null ? keyboardView.getInputMode()
                 : XiapinKeyboardView.MODE_ROOT;
+        // 若在符號層，先回字母再輪
+        if (mode == XiapinKeyboardView.MODE_SYMBOLS) {
+            mode = keyboardView != null ? keyboardView.getLastLettersMode()
+                    : XiapinKeyboardView.MODE_ROOT;
+        }
         int next;
         switch (mode) {
             case XiapinKeyboardView.MODE_ROOT:
@@ -885,14 +889,28 @@ if (btnTranslateSettings != null) {
                 next = XiapinKeyboardView.MODE_ENGLISH;
                 break;
             case XiapinKeyboardView.MODE_ENGLISH:
-                next = XiapinKeyboardView.MODE_SYMBOLS;
-                break;
-            case XiapinKeyboardView.MODE_SYMBOLS:
             default:
                 next = XiapinKeyboardView.MODE_ROOT;
                 break;
         }
         applyInputMode(next);
+    }
+
+    /** 獨立「符」鍵：進符號 / 返回上一字母模式 */
+    public void toggleSymbolsLayer() {
+        if (keyboardView == null) {
+            applyInputMode(XiapinKeyboardView.MODE_SYMBOLS);
+            return;
+        }
+        if (keyboardView.getInputMode() == XiapinKeyboardView.MODE_SYMBOLS) {
+            int back = keyboardView.getLastLettersMode();
+            if (back == XiapinKeyboardView.MODE_SYMBOLS) {
+                back = XiapinKeyboardView.MODE_ROOT;
+            }
+            applyInputMode(back);
+        } else {
+            applyInputMode(XiapinKeyboardView.MODE_SYMBOLS);
+        }
     }
 
     /** 套用模式：schema + 鍵盤 */

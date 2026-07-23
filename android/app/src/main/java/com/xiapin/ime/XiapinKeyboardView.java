@@ -33,6 +33,8 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     public static final int MODE_ENGLISH = 2;
     public static final int MODE_SYMBOLS = 3;
     private int inputMode = MODE_ROOT;
+    /** 進符號前的字母模式，返回時還原 */
+    private int lastLettersMode = MODE_ROOT;
 
     /** 0 全小寫 / 1 首字大寫 / 2 全大寫 */
     private int shiftState = 0;
@@ -126,6 +128,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
     public int getInputMode() { return inputMode; }
+    public int getLastLettersMode() { return lastLettersMode; }
 
     public boolean isEnglishMode() { return inputMode == MODE_ENGLISH; }
     public boolean isZhuyinMode() { return inputMode == MODE_ZHUYIN; }
@@ -134,6 +137,10 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
 
     /** 套用輸入模式並切鍵盤 */
     public void setInputMode(int mode) {
+        if (mode == MODE_SYMBOLS && inputMode != MODE_SYMBOLS) {
+            lastLettersMode = inputMode;
+            if (lastLettersMode == MODE_SYMBOLS) lastLettersMode = MODE_ROOT;
+        }
         this.inputMode = mode;
         if (mode != MODE_ENGLISH) {
             shiftState = 0;
@@ -184,7 +191,9 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         switch (inputMode) {
             case MODE_ZHUYIN: label = "注"; break;
             case MODE_ENGLISH: label = "英"; break;
-            case MODE_SYMBOLS: label = "符"; break;
+            case MODE_SYMBOLS:
+                // 符號層用「返回」，不更新模式鍵
+                return;
             case MODE_ROOT:
             default: label = "拼"; break;
         }
@@ -357,9 +366,12 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         if (service == null) return;
         switch (primaryCode) {
             case -1:
-            case -2:
-                // 拼 → 注 → 英 → 符 → 拼
+                // 拼 → 注 → 英（不含符）
                 service.cycleInputMode();
+                return;
+            case -2:
+                // 符 / 返回
+                service.toggleSymbolsLayer();
                 return;
             case -3:
                 cycleShift();

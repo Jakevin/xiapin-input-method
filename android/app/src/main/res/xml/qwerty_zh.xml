@@ -62,11 +62,13 @@
     </Row>
 
     <!-- 5 鍵：模式 | 空格 | ㄦ | ⌫ | ↵ → 11+50+10+13+12 + 4×0.9 = 96+3.6=99.6 -->
+    <!-- 11+10+40+9+12+12 + 5×0.9 = 94+4.5=98.5 -->
     <Row>
         <Key android:codes="-1" android:keyLabel="注" android:keyWidth="11%p" android:keyEdgeFlags="left" />
-        <Key android:codes="32" android:keyLabel="空格" android:keyWidth="50%p" />
-        <Key android:codes="45" android:keyLabel="-" android:keyWidth="10%p" />
-        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="13%p" android:isRepeatable="true" />
+        <Key android:codes="-2" android:keyLabel="符" android:keyWidth="10%p" />
+        <Key android:codes="32" android:keyLabel="空格" android:keyWidth="40%p" />
+        <Key android:codes="45" android:keyLabel="-" android:keyWidth="9%p" />
+        <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="12%p" android:isRepeatable="true" />
         <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="12%p" android:keyEdgeFlags="right" />
     </Row>
 </Keyboard>

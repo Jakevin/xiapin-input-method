@@ -44,10 +44,10 @@
         <Key android:codes="93" android:keyLabel="]" android:keyWidth="9.2%p" android:keyEdgeFlags="right" />
     </Row>
 
-    <!-- 模式(-1) | 空格 | ⌫ | ↵ -->
+    <!-- 返回字母(-2) | 空格 | ⌫ | ↵ -->
     <Row>
-        <Key android:codes="-1" android:keyLabel="符" android:keyWidth="14%p" android:keyEdgeFlags="left" />
-        <Key android:codes="32" android:keyLabel="空格" android:keyWidth="52%p" />
+        <Key android:codes="-2" android:keyLabel="返回" android:keyWidth="16%p" android:keyEdgeFlags="left" />
+        <Key android:codes="32" android:keyLabel="空格" android:keyWidth="50%p" />
         <Key android:codes="-5" android:keyLabel="⌫" android:keyWidth="16%p" android:isRepeatable="true" />
         <Key android:codes="-4" android:keyLabel="↵" android:keyWidth="14%p" android:keyEdgeFlags="right" />
     </Row>
