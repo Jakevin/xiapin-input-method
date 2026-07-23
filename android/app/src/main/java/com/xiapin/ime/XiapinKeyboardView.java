@@ -11,23 +11,31 @@ import android.util.AttributeSet;
 import android.util.SparseArray;
 
 /**
- * 軟鍵盤：
- *  - 中文：鍵帽英文 + 大千注音（自繪）
- *  - 英文：⇧ 三態
+ * 軟鍵盤（分開、不混打）：
+ *  - 拼：蝦拼字根
+ *  - 注：注音大千（鍵帽注音標）
+ *  - 英：英文 + ⇧
+ *  - 符：符號層
  *
- * codes：-1/-2 中↔英↔符、-3 Shift、-4 Enter、-5 Backspace
+ * codes：-1/-2 模式輪流、-3 Shift、-4 Enter、-5 Backspace
  */
 public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnKeyboardActionListener {
 
     private XiapinIME service;
-    private Keyboard lettersZhKb;
+    private Keyboard lettersRootKb;
+    private Keyboard lettersZhuyinKb;
     private Keyboard lettersEnKb;
     private Keyboard symbolsKb;
-    private int layer = 0;
+
+    /** 拼=0 注=1 英=2 符=3 */
+    public static final int MODE_ROOT = 0;
+    public static final int MODE_ZHUYIN = 1;
+    public static final int MODE_ENGLISH = 2;
+    public static final int MODE_SYMBOLS = 3;
+    private int inputMode = MODE_ROOT;
 
     /** 0 全小寫 / 1 首字大寫 / 2 全大寫 */
     private int shiftState = 0;
-    private boolean englishMode = false;
 
     private final Paint shiftFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shiftTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -74,11 +82,11 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
     private void init() {
-        lettersZhKb = new Keyboard(getContext(), R.xml.qwerty_zh);
+        lettersRootKb = new Keyboard(getContext(), R.xml.qwerty_root);
+        lettersZhuyinKb = new Keyboard(getContext(), R.xml.qwerty_zh);
         lettersEnKb = new Keyboard(getContext(), R.xml.qwerty);
         symbolsKb = new Keyboard(getContext(), R.xml.symbols);
-        setKeyboard(lettersZhKb);
-        prepareZhuyinKeyLabels();
+        setKeyboard(lettersRootKb);
         setOnKeyboardActionListener(this);
         setPreviewEnabled(false);
         setProximityCorrectionEnabled(true);
@@ -117,52 +125,69 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         setMeasuredDimension(width, Math.max(height, getSuggestedMinimumHeight()));
     }
 
-    private Keyboard currentLettersKb() {
-        return englishMode ? lettersEnKb : lettersZhKb;
-    }
+    public int getInputMode() { return inputMode; }
 
-    public void setLayer(int layer) {
-        this.layer = layer;
-        if (layer != 0) {
-            setKeyboard(symbolsKb);
-        } else {
-            setKeyboard(currentLettersKb());
-            if (englishMode) applyShiftVisual();
-        }
-        updateModeButton();
-        prepareZhuyinKeyLabels();
-        invalidateAllKeys();
-    }
+    public boolean isEnglishMode() { return inputMode == MODE_ENGLISH; }
+    public boolean isZhuyinMode() { return inputMode == MODE_ZHUYIN; }
+    public boolean isRootMode() { return inputMode == MODE_ROOT; }
+    public boolean isSymbolsMode() { return inputMode == MODE_SYMBOLS; }
 
-    public void setEnglishMode(boolean english) {
-        this.englishMode = english;
-        if (!english) {
+    /** 套用輸入模式並切鍵盤 */
+    public void setInputMode(int mode) {
+        this.inputMode = mode;
+        if (mode != MODE_ENGLISH) {
             shiftState = 0;
             setShifted(false);
         }
-        if (layer == 0) {
-            setKeyboard(currentLettersKb());
-            if (english) applyShiftVisual();
+        switch (mode) {
+            case MODE_SYMBOLS:
+                setKeyboard(symbolsKb);
+                break;
+            case MODE_ENGLISH:
+                setKeyboard(lettersEnKb);
+                applyShiftVisual();
+                break;
+            case MODE_ZHUYIN:
+                setKeyboard(lettersZhuyinKb);
+                prepareZhuyinKeyLabels();
+                break;
+            case MODE_ROOT:
+            default:
+                setKeyboard(lettersRootKb);
+                break;
         }
-        updateLangButton(english);
-        prepareZhuyinKeyLabels();
+        updateModeButton();
         invalidateAllKeys();
         invalidate();
     }
 
+    /** 相容舊 API */
+    public void setLayer(int layer) {
+        if (layer != 0) setInputMode(MODE_SYMBOLS);
+        else if (inputMode == MODE_SYMBOLS) setInputMode(MODE_ROOT);
+    }
+
+    public void setEnglishMode(boolean english) {
+        if (english) setInputMode(MODE_ENGLISH);
+        else if (inputMode == MODE_ENGLISH) setInputMode(MODE_ROOT);
+    }
+
     public void updateLangButton(boolean english) {
-        this.englishMode = english;
         updateModeButton();
     }
 
-    /** 模式鍵標籤：中 / 英 / 符 */
+    /** 模式鍵：拼 / 注 / 英 / 符 */
     public void updateModeButton() {
         Keyboard kb = getKeyboard();
         if (kb == null) return;
         String label;
-        if (layer != 0) label = "符";
-        else if (englishMode) label = "英";
-        else label = "中";
+        switch (inputMode) {
+            case MODE_ZHUYIN: label = "注"; break;
+            case MODE_ENGLISH: label = "英"; break;
+            case MODE_SYMBOLS: label = "符"; break;
+            case MODE_ROOT:
+            default: label = "拼"; break;
+        }
         for (Keyboard.Key key : kb.getKeys()) {
             if (key.codes != null && key.codes[0] == -1) {
                 key.label = label;
@@ -173,10 +198,9 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         invalidateAllKeys();
     }
 
-
-    /** 中文鍵：label 只放主字（英/數），注音由 onDraw 右上角小標 */
+    /** 注音鍵：label 主字，注音由 onDraw 右上角 */
     private void prepareZhuyinKeyLabels() {
-        if (englishMode) return;
+        if (inputMode != MODE_ZHUYIN) return;
         Keyboard kb = getKeyboard();
         if (kb == null) return;
         for (Keyboard.Key key : kb.getKeys()) {
@@ -206,11 +230,11 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
 
 
     private boolean isUpper() {
-        return englishMode && (shiftState == 1 || shiftState == 2);
+        return inputMode == MODE_ENGLISH && (shiftState == 1 || shiftState == 2);
     }
 
     private void cycleShift() {
-        if (!englishMode) return;
+        if (inputMode != MODE_ENGLISH) return;
         shiftState = (shiftState + 1) % 3;
         applyShiftVisual();
         invalidateAllKeys();
@@ -218,7 +242,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
     private void applyShiftVisual() {
-        if (!englishMode || lettersEnKb == null) return;
+        if (inputMode != MODE_ENGLISH || lettersEnKb == null) return;
         boolean upper = isUpper();
         setShifted(upper);
         for (Keyboard.Key key : lettersEnKb.getKeys()) {
@@ -256,13 +280,13 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         super.onDraw(canvas);
 
         // 英文 Shift 藍底
-        if (englishMode && layer == 0 && shiftState == 2
+        if (inputMode == MODE_ENGLISH && shiftState == 2
                 && lettersEnKb != null && getKeyboard() == lettersEnKb) {
             drawShiftCaps(canvas);
         }
 
         // 中文字母層才畫注音；符號層不要出現注音
-        if (!englishMode && layer == 0) {
+        if (inputMode == MODE_ZHUYIN) {
             drawZhuyinHints(canvas);
         }
     }
@@ -334,7 +358,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         switch (primaryCode) {
             case -1:
             case -2:
-                // 中 → 英 → 符 → 中
+                // 拼 → 注 → 英 → 符 → 拼
                 service.cycleInputMode();
                 return;
             case -3:
@@ -350,17 +374,14 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
                 return;
             }
             default:
-                if (layer == 1) {
+                if (inputMode == MODE_SYMBOLS) {
                     if (primaryCode > 0) {
-                        if (!englishMode && isZhuyinCodeKey(primaryCode)) {
-                            service.sendKey(primaryCode, 0);
-                        } else {
-                            service.commitRaw(new String(Character.toChars(primaryCode)));
-                        }
+                        // 符號層：直送；注音模式殘留時不送 Rime 聲調（符層無注音）
+                        service.commitRaw(new String(Character.toChars(primaryCode)));
                     }
                     return;
                 }
-                if (englishMode && primaryCode >= 'a' && primaryCode <= 'z' && isUpper()) {
+                if (inputMode == MODE_ENGLISH && primaryCode >= 'a' && primaryCode <= 'z' && isUpper()) {
                     service.sendKey(Character.toUpperCase(primaryCode), 0);
                     consumeOneShotShift();
                     return;

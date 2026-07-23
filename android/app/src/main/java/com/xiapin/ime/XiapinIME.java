@@ -788,7 +788,10 @@ if (btnTranslateSettings != null) {
         rime.selectSchema(currentSchema);
         if (keyboardView != null) {
             keyboardLayer = 0;
-            keyboardView.setLayer(0);
+            // 依 currentSchema 還原鍵盤（拼/注/英）
+            if (isEnglishMode()) keyboardView.setInputMode(XiapinKeyboardView.MODE_ENGLISH);
+            else if (isZhuyinMode()) keyboardView.setInputMode(XiapinKeyboardView.MODE_ZHUYIN);
+            else keyboardView.setInputMode(XiapinKeyboardView.MODE_ROOT);
         }
         updateLang();
         updateTranslateUi();
@@ -861,60 +864,99 @@ if (btnTranslateSettings != null) {
         return extraRootCandidate;
     }
 
-    /** 字母 ↔ 符號數字層（保留相容） */
+    /** 字母 ↔ 符號（保留相容） */
     public void toggleKeyboardLayer() {
         cycleInputMode();
     }
 
     /**
-     * 中 → 英 → 符 → 中 三態輪流。
-     * 單一模式鍵，減少底列按鍵數。
+     * 拼 → 注 → 英 → 符 → 拼
+     * 三套輸入邏輯分開，符號層共用。
      */
     public void cycleInputMode() {
-        if (keyboardLayer == 1) {
-            // 符 → 中
-            keyboardLayer = 0;
-            switchToChineseSchema();
-            if (keyboardView != null) {
-                keyboardView.setLayer(0);
-                keyboardView.setEnglishMode(false);
-            }
-        } else if (isEnglishMode()) {
-            // 英 → 符
-            keyboardLayer = 1;
-            if (keyboardView != null) {
-                keyboardView.setLayer(1);
-                keyboardView.updateModeButton();
-            }
-        } else {
-            // 中 → 英
-            keyboardLayer = 0;
-            switchToEnglishSchema();
-            if (keyboardView != null) {
-                keyboardView.setLayer(0);
-                keyboardView.setEnglishMode(true);
-            }
+        int mode = keyboardView != null ? keyboardView.getInputMode()
+                : XiapinKeyboardView.MODE_ROOT;
+        int next;
+        switch (mode) {
+            case XiapinKeyboardView.MODE_ROOT:
+                next = XiapinKeyboardView.MODE_ZHUYIN;
+                break;
+            case XiapinKeyboardView.MODE_ZHUYIN:
+                next = XiapinKeyboardView.MODE_ENGLISH;
+                break;
+            case XiapinKeyboardView.MODE_ENGLISH:
+                next = XiapinKeyboardView.MODE_SYMBOLS;
+                break;
+            case XiapinKeyboardView.MODE_SYMBOLS:
+            default:
+                next = XiapinKeyboardView.MODE_ROOT;
+                break;
         }
+        applyInputMode(next);
+    }
+
+    /** 套用模式：schema + 鍵盤 */
+    private void applyInputMode(int mode) {
         if (rime != null) {
             try { rime.clearComposition(); } catch (Exception ignored) {}
         }
         extraRootCandidate = null;
         clearAssociations();
+
+        String schema;
+        switch (mode) {
+            case XiapinKeyboardView.MODE_ZHUYIN:
+                schema = "xiapin_zhuyin";
+                keyboardLayer = 0;
+                break;
+            case XiapinKeyboardView.MODE_ENGLISH:
+                schema = "xiapin_english";
+                keyboardLayer = 0;
+                break;
+            case XiapinKeyboardView.MODE_SYMBOLS:
+                // 符號層保留上一中文/英 schema，僅切 UI
+                schema = currentSchema != null ? currentSchema : "xiapin";
+                keyboardLayer = 1;
+                break;
+            case XiapinKeyboardView.MODE_ROOT:
+            default:
+                schema = "xiapin";
+                keyboardLayer = 0;
+                mode = XiapinKeyboardView.MODE_ROOT;
+                break;
+        }
+
+        if (mode != XiapinKeyboardView.MODE_SYMBOLS) {
+            selectSchemaSafe(schema);
+        }
+
+        if (keyboardView != null) {
+            keyboardView.setInputMode(mode);
+        }
         if (candidateView != null) candidateView.clear();
         updateLang();
         refresh();
+        android.util.Log.i("XiapinIME", "mode=" + mode + " schema=" + currentSchema);
+    }
+
+    private void selectSchemaSafe(String schemaId) {
+        if (rime == null || schemaId == null) return;
+        boolean ok = rime.selectSchema(schemaId);
+        if (ok) {
+            currentSchema = schemaId;
+            // 再 select 一次提高成功率
+            rime.selectSchema(currentSchema);
+        } else {
+            android.util.Log.w("XiapinIME", "selectSchema failed: " + schemaId);
+        }
     }
 
     private void switchToChineseSchema() {
-        boolean ok = rime != null && rime.selectSchema("xiapin");
-        if (ok) currentSchema = "xiapin";
-        if (ok && rime != null) rime.selectSchema(currentSchema);
+        applyInputMode(XiapinKeyboardView.MODE_ROOT);
     }
 
     private void switchToEnglishSchema() {
-        boolean ok = rime != null && rime.selectSchema("xiapin_english");
-        if (ok) currentSchema = "xiapin_english";
-        if (ok && rime != null) rime.selectSchema(currentSchema);
+        applyInputMode(XiapinKeyboardView.MODE_ENGLISH);
     }
 
     /**
@@ -1097,7 +1139,7 @@ if (btnTranslateSettings != null) {
         if (keycode == ' ') {
             // 注意：無 preedit 時不可只靠 displayCandidates（Enter 送出英文後可能殘留）
             boolean composing = hasPreedit()
-                    || (extraRootCandidate != null && !isEnglishMode() && hasPreedit());
+                    || (extraRootCandidate != null && isRootMode() && hasPreedit());
 
             // 翻譯模式 + 完全沒在組字
             if (translateMode && !composing) {
@@ -1114,7 +1156,7 @@ if (btnTranslateSettings != null) {
             // 組字中：只上屏「一個」候選，然後 return（不再 processKey，避免 Rime 再送一次）
             if (composing) {
                 String pick = null;
-                if (extraRootCandidate != null && !isEnglishMode()) {
+                if (extraRootCandidate != null && isRootMode()) {
                     pick = extraRootCandidate;
                 } else if (displayCandidates != null && !displayCandidates.isEmpty()) {
                     // 譯文 chip 不應被空白選中
@@ -1160,7 +1202,7 @@ if (btnTranslateSettings != null) {
             }
             // 組字中按 Enter：上屏「原文碼」（如 meta），並徹底清空 Rime/候選，
             // 避免之後按空白又選到殘留中文候選
-            if (hasPreedit() || (extraRootCandidate != null && !isEnglishMode())
+            if (hasPreedit() || (extraRootCandidate != null && isRootMode())
                     || (displayCandidates != null && !displayCandidates.isEmpty() && hasPreedit())) {
                 commitRawCompositionAsLatin();
                 return true;
@@ -1181,26 +1223,7 @@ if (btnTranslateSettings != null) {
 
     /** 中/英：xiapin ↔ xiapin_english */
     public void toggleAscii() {
-        // 相容舊呼叫：在字母層中英對切；符號層則回中文
-        if (keyboardLayer == 1) {
-            cycleInputMode(); // 符→中
-            return;
-        }
-        if (isEnglishMode()) {
-            switchToChineseSchema();
-            if (keyboardView != null) keyboardView.setEnglishMode(false);
-        } else {
-            switchToEnglishSchema();
-            if (keyboardView != null) keyboardView.setEnglishMode(true);
-        }
-        if (rime != null) {
-            try { rime.clearComposition(); } catch (Exception ignored) {}
-        }
-        extraRootCandidate = null;
-        clearAssociations();
-        if (candidateView != null) candidateView.clear();
-        updateLang();
-        refresh();
+        cycleInputMode();
     }
 
     public boolean isTranslateMode() { return translateMode; }
@@ -1223,9 +1246,28 @@ if (btnTranslateSettings != null) {
         return "xiapin_english".equals(currentSchema);
     }
 
+    public boolean isZhuyinMode() {
+        return "xiapin_zhuyin".equals(currentSchema);
+    }
+
+    public boolean isRootMode() {
+        return currentSchema == null || "xiapin".equals(currentSchema);
+    }
+
     private void updateLang() {
-        if (keyboardView != null) {
-            keyboardView.setEnglishMode(isEnglishMode());
+        if (keyboardView == null) return;
+        // 符號層不強制改 schema 對應鍵盤
+        if (keyboardView.getInputMode() == XiapinKeyboardView.MODE_SYMBOLS) {
+            keyboardView.updateModeButton();
+            return;
+        }
+        int mode;
+        if (isEnglishMode()) mode = XiapinKeyboardView.MODE_ENGLISH;
+        else if (isZhuyinMode()) mode = XiapinKeyboardView.MODE_ZHUYIN;
+        else mode = XiapinKeyboardView.MODE_ROOT;
+        if (keyboardView.getInputMode() != mode) {
+            keyboardView.setInputMode(mode);
+        } else {
             keyboardView.updateModeButton();
         }
     }
