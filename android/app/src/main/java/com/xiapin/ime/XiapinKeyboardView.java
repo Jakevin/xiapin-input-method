@@ -7,6 +7,9 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.SystemClock;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 
@@ -41,6 +44,11 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
 
     /** 0 全小寫 / 1 首字大寫 / 2 全大寫 */
     private int shiftState = 0;
+    private final Handler longPressHandler = new Handler(Looper.getMainLooper());
+    private int pressCode = 0;
+    private boolean longPressFired = false;
+    private static final long LONG_PRESS_MS = 420L;
+    private final Runnable longPressRunnable = this::onZhuyinLongPress;
 
     private final Paint shiftFillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint shiftTextPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -220,7 +228,10 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         invalidateAllKeys();
     }
 
-    /** 注音鍵：label 主字，注音由 onDraw 右上角 */
+    /**
+     * 注音鍵：清空系統 label，改由 onDraw 自繪
+     * 主標=大注音、副標=小英文/數字（長按上屏副標）
+     */
     private void prepareZhuyinKeyLabels() {
         if (inputMode != MODE_ZHUYIN) return;
         Keyboard kb = getKeyboard();
@@ -229,23 +240,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             if (key.codes == null || key.codes.length == 0) continue;
             int code = key.codes[0];
             if (ZHUYIN.get(code) == null) continue;
-            if (code >= 'a' && code <= 'z') {
-                key.label = String.valueOf((char) code);
-            } else if (code >= '0' && code <= '9') {
-                key.label = String.valueOf((char) code);
-            } else if (code == ',') {
-                key.label = ",";
-            } else if (code == '.') {
-                key.label = ".";
-            } else if (code == ';') {
-                key.label = ";";
-            } else if (code == '/') {
-                key.label = "/";
-            } else if (code == '-') {
-                key.label = "-";
-            } else {
-                continue;
-            }
+            key.label = " "; // 空白，避免 super 畫英文蓋過注音
             key.icon = null;
         }
     }
@@ -339,21 +334,31 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
     /**
-     * 只畫注音小標（右上角）；主字交給 super 的 key.label，避免雙重繪製裁切。
+     * 注音大（置中）+ 英文/數字小（右上角）。
+     * 短按 → 注音進 Rime；長按 → 上屏小標字元。
      */
     private void drawZhuyinHints(Canvas canvas) {
         Keyboard kb = getKeyboard();
         if (kb == null) return;
         float dens = getResources().getDisplayMetrics().density;
-        zhuyinPaint.setTextSize(13f * dens);
-        zhuyinPaint.setColor(0xFFB8C0C8);
-        zhuyinPaint.setTextAlign(Paint.Align.RIGHT);
-        zhuyinPaint.setFakeBoldText(false);
-        if (zhuyinTypeface != null) zhuyinPaint.setTypeface(zhuyinTypeface);
         int padL = getPaddingLeft();
         int padT = getPaddingTop();
+
+        // 大注音
+        zhuyinPaint.setTextSize(22f * dens);
+        zhuyinPaint.setColor(0xFFE8EAED);
+        zhuyinPaint.setTextAlign(Paint.Align.CENTER);
+        zhuyinPaint.setFakeBoldText(true);
+        if (zhuyinTypeface != null) zhuyinPaint.setTypeface(zhuyinTypeface);
         Paint.FontMetrics zfm = zhuyinPaint.getFontMetrics();
-        float inset = 6f * dens;
+
+        // 小英文
+        letterPaint.setTextSize(11f * dens);
+        letterPaint.setColor(0xFF9AA0A6);
+        letterPaint.setTextAlign(Paint.Align.RIGHT);
+        letterPaint.setFakeBoldText(false);
+        Paint.FontMetrics lfm = letterPaint.getFontMetrics();
+        float inset = 5f * dens;
 
         for (Keyboard.Key key : kb.getKeys()) {
             if (key.codes == null || key.codes.length == 0) continue;
@@ -362,16 +367,44 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             if (zy == null) continue;
             float left = key.x + padL;
             float top = key.y + padT;
-            float zx = left + key.width - inset;
-            // 右上角：baseline 在鍵頂下約 14dp
-            float zyBase = top + 14f * dens;
-            // 安全：不超出鍵底
-            if (zyBase + zfm.descent > top + key.height - 2f * dens) {
-                zyBase = top + key.height - 2f * dens - zfm.descent;
+            float cx = left + key.width / 2f;
+            float cy = top + key.height / 2f - (zfm.ascent + zfm.descent) / 2f;
+            // 略偏下，給右上小標留空
+            cy += 2f * dens;
+            canvas.drawText(zy, cx, cy, zhuyinPaint);
+
+            String sec = secondaryLabel(code);
+            if (sec != null) {
+                float sx = left + key.width - inset;
+                float sy = top + 12f * dens - (lfm.ascent + lfm.descent) / 2f;
+                canvas.drawText(sec, sx, sy, letterPaint);
             }
-            canvas.drawText(zy, zx, zyBase, zhuyinPaint);
         }
-        zhuyinPaint.setTextAlign(Paint.Align.CENTER);
+        letterPaint.setTextAlign(Paint.Align.CENTER);
+        zhuyinPaint.setFakeBoldText(false);
+    }
+
+    /** 長按上屏的第二字元（英/數/標點） */
+    private static String secondaryLabel(int code) {
+        if (code >= 'a' && code <= 'z') return String.valueOf((char) code);
+        if (code >= '0' && code <= '9') return String.valueOf((char) code);
+        if (code == ',' || code == '.' || code == ';' || code == '/' || code == '-') {
+            return String.valueOf((char) code);
+        }
+        return null;
+    }
+
+    private void onZhuyinLongPress() {
+        if (inputMode != MODE_ZHUYIN || service == null) return;
+        int code = pressCode;
+        String sec = secondaryLabel(code);
+        if (sec == null) return;
+        longPressFired = true;
+        // 輕微震動回饋（若裝置支援）
+        try {
+            performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
+        } catch (Throwable ignored) {}
+        service.commitRaw(sec);
     }
 
     @Override
@@ -403,6 +436,11 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
                 return;
             }
             default:
+                // 長按已上屏第二字 → 略過短按
+                if (longPressFired) {
+                    longPressFired = false;
+                    return;
+                }
                 if (inputMode == MODE_SYMBOLS) {
                     if (primaryCode > 0) {
                         // 符號層：直送；注音模式殘留時不送 Rime 聲調（符層無注音）
@@ -425,8 +463,21 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         }
     }
 
-    @Override public void onPress(int primaryCode) {}
-    @Override public void onRelease(int primaryCode) {}
+    @Override
+    public void onPress(int primaryCode) {
+        pressCode = primaryCode;
+        longPressFired = false;
+        longPressHandler.removeCallbacks(longPressRunnable);
+        // 僅注音模式、有第二字元的鍵才長按
+        if (inputMode == MODE_ZHUYIN && secondaryLabel(primaryCode) != null) {
+            longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_MS);
+        }
+    }
+
+    @Override
+    public void onRelease(int primaryCode) {
+        longPressHandler.removeCallbacks(longPressRunnable);
+    }
     @Override public void onText(CharSequence text) {
         if (service != null && text != null) service.commitRaw(text.toString());
     }
