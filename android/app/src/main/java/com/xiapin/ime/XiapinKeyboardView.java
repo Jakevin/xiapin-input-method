@@ -129,7 +129,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             setKeyboard(currentLettersKb());
             if (englishMode) applyShiftVisual();
         }
-        updateLangButton(englishMode);
+        updateModeButton();
         prepareZhuyinKeyLabels();
         invalidateAllKeys();
     }
@@ -152,11 +152,20 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
 
     public void updateLangButton(boolean english) {
         this.englishMode = english;
+        updateModeButton();
+    }
+
+    /** 模式鍵標籤：中 / 英 / 符 */
+    public void updateModeButton() {
         Keyboard kb = getKeyboard();
         if (kb == null) return;
+        String label;
+        if (layer != 0) label = "符";
+        else if (englishMode) label = "英";
+        else label = "中";
         for (Keyboard.Key key : kb.getKeys()) {
             if (key.codes != null && key.codes[0] == -1) {
-                key.label = english ? "英" : "中";
+                key.label = label;
                 key.icon = null;
                 break;
             }
@@ -324,10 +333,9 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         if (service == null) return;
         switch (primaryCode) {
             case -1:
-                service.toggleAscii();
-                return;
             case -2:
-                service.toggleKeyboardLayer();
+                // 中 → 英 → 符 → 中
+                service.cycleInputMode();
                 return;
             case -3:
                 cycleShift();

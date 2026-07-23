@@ -861,13 +861,60 @@ if (btnTranslateSettings != null) {
         return extraRootCandidate;
     }
 
-    /** 字母 ↔ 符號數字層 */
+    /** 字母 ↔ 符號數字層（保留相容） */
     public void toggleKeyboardLayer() {
-        keyboardLayer = (keyboardLayer == 0) ? 1 : 0;
-        if (keyboardView != null) {
-            keyboardView.setLayer(keyboardLayer);
-            updateLang();
+        cycleInputMode();
+    }
+
+    /**
+     * 中 → 英 → 符 → 中 三態輪流。
+     * 單一模式鍵，減少底列按鍵數。
+     */
+    public void cycleInputMode() {
+        if (keyboardLayer == 1) {
+            // 符 → 中
+            keyboardLayer = 0;
+            switchToChineseSchema();
+            if (keyboardView != null) {
+                keyboardView.setLayer(0);
+                keyboardView.setEnglishMode(false);
+            }
+        } else if (isEnglishMode()) {
+            // 英 → 符
+            keyboardLayer = 1;
+            if (keyboardView != null) {
+                keyboardView.setLayer(1);
+                keyboardView.updateModeButton();
+            }
+        } else {
+            // 中 → 英
+            keyboardLayer = 0;
+            switchToEnglishSchema();
+            if (keyboardView != null) {
+                keyboardView.setLayer(0);
+                keyboardView.setEnglishMode(true);
+            }
         }
+        if (rime != null) {
+            try { rime.clearComposition(); } catch (Exception ignored) {}
+        }
+        extraRootCandidate = null;
+        clearAssociations();
+        if (candidateView != null) candidateView.clear();
+        updateLang();
+        refresh();
+    }
+
+    private void switchToChineseSchema() {
+        boolean ok = rime != null && rime.selectSchema("xiapin");
+        if (ok) currentSchema = "xiapin";
+        if (ok && rime != null) rime.selectSchema(currentSchema);
+    }
+
+    private void switchToEnglishSchema() {
+        boolean ok = rime != null && rime.selectSchema("xiapin_english");
+        if (ok) currentSchema = "xiapin_english";
+        if (ok && rime != null) rime.selectSchema(currentSchema);
     }
 
     /**
@@ -1134,18 +1181,23 @@ if (btnTranslateSettings != null) {
 
     /** 中/英：xiapin ↔ xiapin_english */
     public void toggleAscii() {
-        boolean toEnglish = "xiapin".equals(currentSchema);
-        String target = toEnglish ? "xiapin_english" : "xiapin";
-        // 先清組字，再切 schema，避免舊中文候選殘留
-        rime.clearComposition();
+        // 相容舊呼叫：在字母層中英對切；符號層則回中文
+        if (keyboardLayer == 1) {
+            cycleInputMode(); // 符→中
+            return;
+        }
+        if (isEnglishMode()) {
+            switchToChineseSchema();
+            if (keyboardView != null) keyboardView.setEnglishMode(false);
+        } else {
+            switchToEnglishSchema();
+            if (keyboardView != null) keyboardView.setEnglishMode(true);
+        }
+        if (rime != null) {
+            try { rime.clearComposition(); } catch (Exception ignored) {}
+        }
         extraRootCandidate = null;
         clearAssociations();
-        boolean ok = rime.selectSchema(target);
-        if (ok) {
-            currentSchema = target;
-        }
-        // 再 select 一次提高成功率（部分 session 首次切換會失敗）
-        if (ok) rime.selectSchema(currentSchema);
         if (candidateView != null) candidateView.clear();
         updateLang();
         refresh();
@@ -1173,9 +1225,9 @@ if (btnTranslateSettings != null) {
 
     private void updateLang() {
         if (keyboardView != null) {
-            // 同步中/英：中文關 Shift，英文才可用大寫
             keyboardView.setEnglishMode(isEnglishMode());
-            }
+            keyboardView.updateModeButton();
+        }
     }
 
     /**

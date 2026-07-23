@@ -1,14 +1,15 @@
-# 蝦注拼 v0.2.15
+# 蝦注拼 v0.2.16
 
-## 修正：翻完再輸入不重翻
+## 中 / 英 / 符 三態輪流
 
-**根因**：選字上屏當下 Rime `preedit` 尚未清空，`scheduleTranslate` 被 `hasPreedit()` 擋掉，且選字路徑沒有 `maybeResume`。
+底列改為**單一模式鍵**，點一下輪流：
 
-**修正**：
-- 原文變更後 **force 排程**（不因 preedit 殘留而跳過）
-- 選字 / commit 後 **clearComposition + maybeResume**
-- 原文變了清舊譯文並重開 3 秒
+```
+中 → 英 → 符 → 中 → …
+```
 
-實機驗證：`市`→譯文後再打 `恰`→`市恰` 會再翻。
+- 鍵帽顯示目前模式：`中` / `英` / `符`
+- 拿掉獨立「符」鍵 → 底列更鬆、空格更寬
+- 符號層左下也是同一顆模式鍵（顯示 `符`，再點回 `中`）
 
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.15
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.16
