@@ -216,7 +216,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
                 // 符號層用「返回」，不更新模式鍵
                 return;
             case MODE_ROOT:
-            default: label = "拼"; break;
+            default: label = "蝦"; break;
         }
         for (Keyboard.Key key : kb.getKeys()) {
             if (key.codes != null && key.codes[0] == -1) {

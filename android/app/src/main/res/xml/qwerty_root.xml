@@ -58,7 +58,7 @@
 
     <!-- 模式 | 符 | 空格 | , | ↵ -->
     <Row>
-        <Key android:codes="-1" android:keyLabel="拼" android:keyWidth="11%p" android:keyEdgeFlags="left" />
+        <Key android:codes="-1" android:keyLabel="蝦" android:keyWidth="11%p" android:keyEdgeFlags="left" />
         <Key android:codes="-2" android:keyLabel="符" android:keyWidth="11%p" />
         <Key android:codes="32" android:keyLabel="空格" android:keyWidth="50%p" />
         <Key android:codes="44" android:keyLabel="," android:keyWidth="12%p" />
