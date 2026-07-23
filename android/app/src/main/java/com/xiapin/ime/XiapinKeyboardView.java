@@ -252,8 +252,8 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             drawShiftCaps(canvas);
         }
 
-        // 中文：英文鍵 + 注音副標
-        if (!englishMode) {
+        // 中文字母層才畫注音；符號層不要出現注音
+        if (!englishMode && layer == 0) {
             drawZhuyinHints(canvas);
         }
     }

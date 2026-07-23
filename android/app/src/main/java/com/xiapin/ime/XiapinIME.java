@@ -52,6 +52,8 @@ public class XiapinIME extends InputMethodService {
     private android.view.View translatePanel;
     private android.view.View translateSourceRow;
     private android.widget.LinearLayout translateResultRow;
+    private android.widget.ProgressBar translateProgress;
+    private boolean translateInFlight = false;
     private android.widget.TextView btnClearSource;
     private android.widget.TextView btnSendSource;
     private android.widget.TextView btnTranslateSettings;
@@ -88,6 +90,7 @@ public class XiapinIME extends InputMethodService {
         translatePanel = root.findViewById(R.id.translate_panel);
         translateSourceRow = root.findViewById(R.id.translate_source_row);
         translateResultRow = root.findViewById(R.id.translate_result_row);
+        translateProgress = root.findViewById(R.id.translate_progress);
         btnClearSource = root.findViewById(R.id.btn_clear_source);
         btnTranslateSettings = root.findViewById(R.id.btn_translate_settings);
         btnSendSource = root.findViewById(R.id.btn_send_source);
@@ -185,6 +188,8 @@ if (btnTranslateSettings != null) {
             // ★ 關掉翻譯：先把原文 EditText 內容送進 App，避免文字消失
             flushTranslateSourceToApp();
             translateMode = false;
+            translateInFlight = false;
+            setTranslateProgressVisible(false);
             translateSource = "";
             translateResult = "";
             translateOptions = new java.util.ArrayList<>();
@@ -326,12 +331,23 @@ if (btnTranslateSettings != null) {
         if (txtTranslateHint != null) {
             txtTranslateHint.setVisibility(translateMode ? View.VISIBLE : View.GONE);
             if (translateMode) {
-                if (translateSource != null && !translateSource.isEmpty()
+                if (translateInFlight) {
+                    txtTranslateHint.setText(TranslatePrefs.isLlm(this) ? "LLM 翻譯中…" : "翻譯中…");
+                    txtTranslateHint.setTextColor(0xFF5B9BFF);
+                    setTranslateProgressVisible(true);
+                } else if (translateSource != null && !translateSource.isEmpty()
+                        && (translateOptions == null || translateOptions.isEmpty())
+                        && hasPreedit()) {
+                    txtTranslateHint.setText("輸入中…（停頓 3 秒後翻譯）");
+                    txtTranslateHint.setTextColor(0xFFFBBF24);
+                    setTranslateProgressVisible(false);
+                } else if (translateSource != null && !translateSource.isEmpty()
                         && (translateOptions == null || translateOptions.isEmpty())
                         && pendingTranslate != null) {
                     boolean llmPend = TranslatePrefs.isLlm(this);
-                    txtTranslateHint.setText(llmPend ? "停頓中，3 秒後翻譯…" : "翻譯中…");
+                    txtTranslateHint.setText(llmPend ? "停頓中，3 秒後翻譯…" : "…");
                     txtTranslateHint.setTextColor(llmPend ? 0xFFFBBF24 : 0xFF9AA0A6);
+                    setTranslateProgressVisible(false);
                 } else if (translateOptions != null && !translateOptions.isEmpty()) {
                     txtTranslateHint.setText("點譯文上屏");
                     txtTranslateHint.setTextColor(0xFF8AB4F8);
@@ -381,30 +397,60 @@ if (btnTranslateSettings != null) {
     /** debounce 280ms，避免每個字狂打 API；結果只進譯文列 */
     private void scheduleTranslate(final String source) {
         if (!translateMode || source == null || source.trim().isEmpty()) return;
+        // 還在組字（字母輸入中）→ 不算停頓，不啟動 3 秒
+        if (hasPreedit()) {
+            cancelPendingTranslate();
+            translateInFlight = false;
+            setTranslateProgressVisible(false);
+            if (txtTranslateHint != null && TranslatePrefs.isLlm(this)) {
+                txtTranslateHint.setText("輸入中…（停頓 3 秒後翻譯）");
+                txtTranslateHint.setTextColor(0xFFFBBF24);
+            }
+            return;
+        }
         cancelPendingTranslate();
         final String src = source.trim();
         final boolean llm = TranslatePrefs.isLlm(this);
-        // gtx：280ms；LLM：停頓 3 秒才打 API（避免每字燒錢）
+        // gtx：280ms；LLM：真正停頓滿 3 秒才打 API
         final long delayMs = llm ? 3000L : 280L;
         pendingTranslate = () -> {
             pendingTranslate = null;
-            // 再次確認原文沒變、模式仍開
             if (!translateMode) return;
+            // 計時結束時若又開始組字，取消
+            if (hasPreedit()) {
+                setTranslateProgressVisible(false);
+                return;
+            }
             String cur = translateSource == null ? "" : translateSource.trim();
             if (!src.equals(cur)) return;
             requestTranslateNow(src);
         };
         translateHandler.postDelayed(pendingTranslate, delayMs);
         updateTranslateUi();
-        if (translateResultRow != null && (translateOptions == null || translateOptions.isEmpty())) {
-            showTranslatePlaceholder(llm ? "3秒後翻譯…" : "…");
+        if (translateResultRow != null && (translateOptions == null || translateOptions.isEmpty())
+                && !translateInFlight) {
+            showTranslatePlaceholder(llm ? "停頓 3 秒後翻譯…" : "…");
         }
     }
 
     private void requestTranslateNow(String source) {
         if (!translateMode || source == null || source.isEmpty()) return;
+        if (hasPreedit()) return; // 字母輸入中不呼叫
+        cancelPendingTranslate();
+        translateInFlight = true;
+        setTranslateProgressVisible(true);
+        if (txtTranslateHint != null) {
+            boolean llm = TranslatePrefs.isLlm(this);
+            txtTranslateHint.setText(llm ? "LLM 翻譯中…" : "翻譯中…");
+            txtTranslateHint.setTextColor(0xFF5B9BFF);
+        }
+        if (translateResultRow != null) {
+            showTranslatePlaceholder("翻譯中…");
+        }
         TranslateHelper.TargetLang target = TranslateHelper.TARGETS[langPairIndex];
         TranslateHelper.translate(getApplicationContext(), source, target.tl, (src, options, error) -> {
+            translateInFlight = false;
+            setTranslateProgressVisible(false);
             if (!translateMode) return;
             // 若原文已變，忽略過期結果
             if (translateSource == null || !source.equals(translateSource.trim())) return;
@@ -423,6 +469,11 @@ if (btnTranslateSettings != null) {
             updateTranslateUi();
             renderTranslateResults();
         });
+    }
+
+    private void setTranslateProgressVisible(boolean visible) {
+        if (translateProgress == null) return;
+        translateProgress.setVisibility(visible ? android.view.View.VISIBLE : android.view.View.GONE);
     }
 
 
@@ -636,6 +687,14 @@ if (btnTranslateSettings != null) {
     /** 開始組下一字：候選列讓給拼音/字根；譯文列仍保留上次結果 */
     private void pauseTranslateOptionsForComposition() {
         if (!translateMode) return;
+        // 還在打字母／組字：3 秒計時歸零，不算停頓
+        cancelPendingTranslate();
+        translateInFlight = false;
+        setTranslateProgressVisible(false);
+        if (txtTranslateHint != null && TranslatePrefs.isLlm(this)) {
+            txtTranslateHint.setText("輸入中…（停頓 3 秒後翻譯）");
+            txtTranslateHint.setTextColor(0xFFFBBF24);
+        }
         // 不再清掉 translateOptions，譯文列獨立，不搶候選列
         updateTranslateUi();
     }
@@ -911,9 +970,12 @@ if (btnTranslateSettings != null) {
             return deleteAppChar();
         }
         // 開始打字母 → 清關聯；翻譯模式先讓出候選列給組字
-        if (keycode >= 'a' && keycode <= 'z') {
+        if ((keycode >= 'a' && keycode <= 'z')
+                || (keycode >= '0' && keycode <= '9')
+                || keycode == ',' || keycode == '.' || keycode == ';'
+                || keycode == '/' || keycode == '-') {
             clearAssociations();
-            pauseTranslateOptionsForComposition();
+            if (translateMode) pauseTranslateOptionsForComposition();
         }
         // 空白鍵：只走「選候選」或「輸出空格」其中一條，絕不雙重上屏
         if (keycode == ' ') {
