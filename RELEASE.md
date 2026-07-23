@@ -1,13 +1,10 @@
-# 蝦注拼 v0.2.13
+# 蝦注拼 v0.2.14
 
-## 修正卡住「停頓 3 秒後翻譯」
+## 修正：翻完再打字不會再翻
 
-- 原文沒變時**不重計時**（避免 refresh 一直重置導致永遠不翻）
-- 組字結束後 **自動接回** 3 秒計時
-- 組字中暫停計時，不再把計時整個清掉後忘記重啟
+原文一變更就：
+1. 清掉舊譯文
+2. 重新開始「停頓 3 秒」計時
+3. 到期呼叫 LLM
 
-## 其他
-
-- 候選列**不再顯示重覆的 1–0 數字列**（鍵盤已有數字）
-
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.13
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.2.14

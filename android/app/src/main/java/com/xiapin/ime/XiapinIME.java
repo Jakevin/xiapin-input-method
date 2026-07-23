@@ -145,9 +145,7 @@ if (btnTranslateSettings != null) {
                     renderTranslateResults();
                     updateTranslateUi();
                 } else {
-                    // gtx 短延遲；LLM 停頓 3 秒後自動翻（可取消重計時）
-                    scheduleTranslate(now);
-                    updateTranslateUi();
+                    onTranslateSourceContentChanged();
                 }
             }
         });
@@ -446,9 +444,35 @@ if (btnTranslateSettings != null) {
         };
         translateHandler.postDelayed(pendingTranslate, delayMs);
         updateTranslateUi();
-        if (translateResultRow != null && (translateOptions == null || translateOptions.isEmpty())
-                && !translateInFlight) {
+        boolean needNew = lastTranslatedSource == null || !src.equals(lastTranslatedSource.trim());
+        if (translateResultRow != null && !translateInFlight && needNew) {
             showTranslatePlaceholder(llm ? "停頓 3 秒後翻譯…" : "…");
+        }
+    }
+
+
+    /** 原文內容變了：清舊譯文、重開 3 秒計時 */
+    private void onTranslateSourceContentChanged() {
+        if (!translateMode) return;
+        String src = translateSource == null ? "" : translateSource.trim();
+        // 與上次成功翻譯的原文不同 → 舊譯文作廢，強制重翻
+        if (lastTranslatedSource == null || !src.equals(lastTranslatedSource.trim())) {
+            translateOptions = new java.util.ArrayList<>();
+            translateResult = "";
+            if (pendingTranslate != null) {
+                translateHandler.removeCallbacks(pendingTranslate);
+                pendingTranslate = null;
+            }
+            lastScheduledTranslateSrc = null;
+            if (!src.isEmpty() && !translateInFlight) {
+                showTranslatePlaceholder(TranslatePrefs.isLlm(this) ? "停頓 3 秒後翻譯…" : "…");
+            } else if (src.isEmpty()) {
+                renderTranslateResults();
+            }
+        }
+        updateTranslateUi();
+        if (!src.isEmpty()) {
+            scheduleTranslate(src);
         }
     }
 
@@ -459,9 +483,11 @@ if (btnTranslateSettings != null) {
         String src = translateSource == null ? "" : translateSource.trim();
         if (src.isEmpty()) return;
         if (pendingTranslate != null) return;
-        // 已有譯文且原文沒變可略過；無譯文則排程
-        if (translateOptions != null && !translateOptions.isEmpty()
-                && src.equals(lastTranslatedSource)) return;
+        // 已有譯文且原文完全相同 → 不必再翻
+        if (lastTranslatedSource != null && src.equals(lastTranslatedSource.trim())
+                && translateOptions != null && !translateOptions.isEmpty()) {
+            return;
+        }
         scheduleTranslate(src);
     }
 
@@ -672,10 +698,7 @@ if (btnTranslateSettings != null) {
                 if (translateSource == null) translateSource = "";
                 translateSource = translateSource + text;
             }
-            updateTranslateUi();
-            if (translateSource != null && !translateSource.trim().isEmpty()) {
-                scheduleTranslate(translateSource.trim());
-            }
+            onTranslateSourceContentChanged();
             return true;
         }
 
@@ -698,8 +721,7 @@ if (btnTranslateSettings != null) {
         suppressSourceWatch = false;
 
         android.util.Log.i("XiapinIME", "TR edit [" + text + "] pos=" + insertPos + " => [" + translateSource + "]");
-        updateTranslateUi();
-        scheduleTranslate(translateSource);
+        onTranslateSourceContentChanged();
         return true;
     }
 
@@ -904,8 +926,7 @@ if (btnTranslateSettings != null) {
             updateTranslateUi();
             if (candidateView != null && rime != null) candidateView.update(rime.getContext());
         } else {
-            updateTranslateUi();
-            scheduleTranslate(translateSource);
+            onTranslateSourceContentChanged();
         }
     }
 
