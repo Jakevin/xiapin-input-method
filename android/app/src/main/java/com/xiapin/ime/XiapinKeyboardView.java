@@ -26,6 +26,9 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     private Keyboard lettersZhuyinKb;
     private Keyboard lettersEnKb;
     private Keyboard symbolsKb;
+    private Keyboard symbols2Kb;
+    /** 符號層頁：0=半形常用 1=中文/更多 */
+    private int symbolPage = 0;
 
     /** 拼=0 注=1 英=2 符=3 */
     public static final int MODE_ROOT = 0;
@@ -88,6 +91,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         lettersZhuyinKb = new Keyboard(getContext(), R.xml.qwerty_zh);
         lettersEnKb = new Keyboard(getContext(), R.xml.qwerty);
         symbolsKb = new Keyboard(getContext(), R.xml.symbols);
+        symbols2Kb = new Keyboard(getContext(), R.xml.symbols2);
         setKeyboard(lettersRootKb);
         setOnKeyboardActionListener(this);
         setPreviewEnabled(false);
@@ -148,7 +152,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         }
         switch (mode) {
             case MODE_SYMBOLS:
-                setKeyboard(symbolsKb);
+                setKeyboard(symbolPage == 1 ? symbols2Kb : symbolsKb);
                 break;
             case MODE_ENGLISH:
                 setKeyboard(lettersEnKb);
@@ -177,6 +181,15 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     public void setEnglishMode(boolean english) {
         if (english) setInputMode(MODE_ENGLISH);
         else if (inputMode == MODE_ENGLISH) setInputMode(MODE_ROOT);
+    }
+
+    /** 符號層兩頁切換 */
+    public void toggleSymbolPage() {
+        if (inputMode != MODE_SYMBOLS) return;
+        symbolPage = (symbolPage == 0) ? 1 : 0;
+        setKeyboard(symbolPage == 1 ? symbols2Kb : symbolsKb);
+        invalidateAllKeys();
+        invalidate();
     }
 
     public void updateLangButton(boolean english) {
@@ -372,6 +385,10 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
             case -2:
                 // 符 / 返回
                 service.toggleSymbolsLayer();
+                return;
+            case -6:
+                // 符號頁 更多 ↔ 半形
+                toggleSymbolPage();
                 return;
             case -3:
                 cycleShift();
