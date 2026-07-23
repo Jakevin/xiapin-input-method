@@ -59,6 +59,9 @@ public class XiapinIME extends InputMethodService {
     private android.widget.TextView btnTranslateSettings;
     private final android.os.Handler translateHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable pendingTranslate;
+    private String lastTranslatedSource = null;
+    /** 目前 debounce 針對的原文；相同則不重計時 */
+    private String lastScheduledTranslateSrc = null;
 
     @Override
     public void onCreate() {
@@ -392,15 +395,22 @@ if (btnTranslateSettings != null) {
             translateHandler.removeCallbacks(pendingTranslate);
             pendingTranslate = null;
         }
+        lastScheduledTranslateSrc = null;
     }
 
-    /** debounce 280ms，避免每個字狂打 API；結果只進譯文列 */
+    /** debounce：gtx 280ms / LLM 3s；組字中不計時；原文沒變不重計時 */
     private void scheduleTranslate(final String source) {
         if (!translateMode || source == null || source.trim().isEmpty()) return;
-        // 還在組字（字母輸入中）→ 不算停頓，不啟動 3 秒
+        if (translateInFlight) return; // 已在打 API
+        final String src = source.trim();
+
+        // 還在組字 → 暫停計時（保留 lastScheduled 以便組字結束後重啟）
         if (hasPreedit()) {
-            cancelPendingTranslate();
-            translateInFlight = false;
+            if (pendingTranslate != null) {
+                translateHandler.removeCallbacks(pendingTranslate);
+                pendingTranslate = null;
+            }
+            // 不要清 lastScheduledTranslateSrc，組字完可接續
             setTranslateProgressVisible(false);
             if (txtTranslateHint != null && TranslatePrefs.isLlm(this)) {
                 txtTranslateHint.setText("輸入中…（停頓 3 秒後翻譯）");
@@ -408,16 +418,25 @@ if (btnTranslateSettings != null) {
             }
             return;
         }
-        cancelPendingTranslate();
-        final String src = source.trim();
+
+        // 原文沒變且已在等 → 不重計時（避免 refresh 重置 3 秒導致永遠不翻）
+        if (pendingTranslate != null && src.equals(lastScheduledTranslateSrc)) {
+            return;
+        }
+
+        if (pendingTranslate != null) {
+            translateHandler.removeCallbacks(pendingTranslate);
+            pendingTranslate = null;
+        }
+        lastScheduledTranslateSrc = src;
         final boolean llm = TranslatePrefs.isLlm(this);
-        // gtx：280ms；LLM：真正停頓滿 3 秒才打 API
         final long delayMs = llm ? 3000L : 280L;
         pendingTranslate = () -> {
             pendingTranslate = null;
+            lastScheduledTranslateSrc = null;
             if (!translateMode) return;
-            // 計時結束時若又開始組字，取消
             if (hasPreedit()) {
+                // 組字中到點：等組字結束後由 maybeResumeTranslate 重啟
                 setTranslateProgressVisible(false);
                 return;
             }
@@ -431,6 +450,19 @@ if (btnTranslateSettings != null) {
                 && !translateInFlight) {
             showTranslatePlaceholder(llm ? "停頓 3 秒後翻譯…" : "…");
         }
+    }
+
+    /** 組字結束後：若有原文且沒在翻、沒在等，重啟 3 秒計時 */
+    private void maybeResumeTranslateAfterComposition() {
+        if (!translateMode || translateInFlight) return;
+        if (hasPreedit()) return;
+        String src = translateSource == null ? "" : translateSource.trim();
+        if (src.isEmpty()) return;
+        if (pendingTranslate != null) return;
+        // 已有譯文且原文沒變可略過；無譯文則排程
+        if (translateOptions != null && !translateOptions.isEmpty()
+                && src.equals(lastTranslatedSource)) return;
+        scheduleTranslate(src);
     }
 
     private void requestTranslateNow(String source) {
@@ -466,6 +498,7 @@ if (btnTranslateSettings != null) {
             }
             translateOptions = sanitizeTranslateOptions(options);
             translateResult = translateOptions.isEmpty() ? "" : translateOptions.get(0);
+            lastTranslatedSource = source;
             updateTranslateUi();
             renderTranslateResults();
         });
@@ -687,11 +720,14 @@ if (btnTranslateSettings != null) {
     /** 開始組下一字：候選列讓給拼音/字根；譯文列仍保留上次結果 */
     private void pauseTranslateOptionsForComposition() {
         if (!translateMode) return;
-        // 還在打字母／組字：3 秒計時歸零，不算停頓
-        cancelPendingTranslate();
-        translateInFlight = false;
-        setTranslateProgressVisible(false);
-        if (txtTranslateHint != null && TranslatePrefs.isLlm(this)) {
+        // 組字中：暫停計時（不清 lastScheduled，結束後 maybeResume）
+        if (pendingTranslate != null) {
+            translateHandler.removeCallbacks(pendingTranslate);
+            pendingTranslate = null;
+        }
+        // 不中斷 in-flight API
+        setTranslateProgressVisible(translateInFlight);
+        if (!translateInFlight && txtTranslateHint != null && TranslatePrefs.isLlm(this)) {
             txtTranslateHint.setText("輸入中…（停頓 3 秒後翻譯）");
             txtTranslateHint.setTextColor(0xFFFBBF24);
         }
@@ -970,12 +1006,15 @@ if (btnTranslateSettings != null) {
             return deleteAppChar();
         }
         // 開始打字母 → 清關聯；翻譯模式先讓出候選列給組字
-        if ((keycode >= 'a' && keycode <= 'z')
-                || (keycode >= '0' && keycode <= '9')
-                || keycode == ',' || keycode == '.' || keycode == ';'
-                || keycode == '/' || keycode == '-') {
+        if (keycode >= 'a' && keycode <= 'z') {
             clearAssociations();
             if (translateMode) pauseTranslateOptionsForComposition();
+        } else if (translateMode && hasPreedit()
+                && ((keycode >= '0' && keycode <= '9')
+                || keycode == ',' || keycode == '.' || keycode == ';'
+                || keycode == '/' || keycode == '-')) {
+            // 組字中的注音聲調鍵：暫停計時
+            pauseTranslateOptionsForComposition();
         }
         // 空白鍵：只走「選候選」或「輸出空格」其中一條，絕不雙重上屏
         if (keycode == ' ') {
@@ -1354,7 +1393,11 @@ if (btnTranslateSettings != null) {
             candidateView.update(ctx);
         }
         updateLang();
-        if (translateMode) updateTranslateUi();
+        if (translateMode) {
+            updateTranslateUi();
+            // 組字結束後接回 3 秒計時（避免卡在「停頓 3 秒」卻永不觸發）
+            maybeResumeTranslateAfterComposition();
+        }
     }
 
     public RimeJNI getRime() { return rime; }

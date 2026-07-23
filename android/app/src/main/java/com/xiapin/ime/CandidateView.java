@@ -299,46 +299,18 @@ public class CandidateView extends FrameLayout {
         showDigitRow();
     }
 
-    /** 無候選時顯示 1–0 數字鍵 */
+    /** 無候選時保持空白（數字已在鍵盤上，不再重覆 1–0 列） */
     private void showDigitRow() {
-        showingDigits = true;
+        showingDigits = false;
         showingTranslate = false;
         if (candidateRow == null) return;
         candidateRow.removeAllViews();
-
-        // 數字列要撐滿螢幕寬（不用橫滑）
         android.view.ViewGroup.LayoutParams rowLp = candidateRow.getLayoutParams();
         if (rowLp != null) {
             rowLp.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT;
             candidateRow.setLayoutParams(rowLp);
         }
-        candidateRow.setWeightSum(10f);
-        int pad = dp(3);
-        String[] digits = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
-        for (String d : digits) {
-            TextView tv = new TextView(getContext());
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f);
-            lp.setMargins(pad, dp(4), pad, dp(4));
-            tv.setLayoutParams(lp);
-            tv.setText(d);
-            tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-            tv.setTextColor(COLOR_DIGIT_TEXT);
-            tv.setGravity(Gravity.CENTER);
-            tv.setTypeface(Typeface.DEFAULT_BOLD);
-            tv.setClickable(true);
-            tv.setFocusable(true);
-
-            GradientDrawable bg = new GradientDrawable();
-            bg.setColor(COLOR_DIGIT_BG);
-            bg.setCornerRadius(dp(8));
-            tv.setBackground(bg);
-
-            final String digit = d;
-            tv.setOnClickListener(v -> {
-                if (service != null) service.commitRaw(digit);
-            });
-            candidateRow.addView(tv);
-        }
+        candidateRow.setWeightSum(0f);
     }
 
     private void showCandidateRow(String preedit, List<RimeJNI.Candidate> cands,
