@@ -15,7 +15,7 @@ import android.util.SparseArray;
  *  - 中文：鍵帽英文 + 大千注音（自繪）
  *  - 英文：⇧ 三態
  *
- * codes：-1 中/英、-2 123、-3 Shift、-4 Enter、-5 Backspace
+ * codes：-1/-2 中↔英↔符、-3 Shift、-4 Enter、-5 Backspace
  */
 public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnKeyboardActionListener {
 
@@ -55,7 +55,7 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         ZHUYIN.put('v', "ㄒ"); ZHUYIN.put('b', "ㄖ"); ZHUYIN.put('n', "ㄙ");
         ZHUYIN.put('m', "ㄩ");
         ZHUYIN.put(',', "ㄝ"); ZHUYIN.put('.', "ㄡ");
-        // 數字列（123 層／聲調）
+        // 數字／聲調（中文主鍵盤數字列）
         ZHUYIN.put('1', "ㄅ"); ZHUYIN.put('2', "ㄉ"); ZHUYIN.put('3', "ˇ");
         ZHUYIN.put('4', "ˋ"); ZHUYIN.put('5', "ㄓ"); ZHUYIN.put('6', "ˊ");
         ZHUYIN.put('7', "˙"); ZHUYIN.put('8', "ㄚ"); ZHUYIN.put('9', "ㄞ");
