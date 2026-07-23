@@ -1,9 +1,9 @@
-# 蝦拼 v0.3.1
+# 蝦拼 v0.3.2
 
-## 符號改回獨立鍵
+## 拼 / 英 加上數字列
 
-- **模式鍵**（-1）：只輪流 `拼 → 注 → 英`
-- **符**（-2）：獨立進入符號層
-- 符號層左下 **返回**：回到進符前的模式（拼/注/英）
+- **拼**、**英** 鍵盤頂列：`1 2 3 4 5 6 7 8 9 0`
+- 數字直接上屏（不進字根/英文碼表）
+- **注** 模式數字列仍是大千注音（ㄅㄉ…）
 
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.3.1
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.3.2

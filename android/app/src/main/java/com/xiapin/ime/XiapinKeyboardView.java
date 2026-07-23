@@ -398,6 +398,12 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
                     consumeOneShotShift();
                     return;
                 }
+                // 拼/英：數字直接上屏（不進 Rime 字根/英文碼）
+                if ((inputMode == MODE_ROOT || inputMode == MODE_ENGLISH)
+                        && primaryCode >= '0' && primaryCode <= '9') {
+                    service.commitRaw(String.valueOf((char) primaryCode));
+                    return;
+                }
                 service.sendKey(primaryCode, 0);
         }
     }
