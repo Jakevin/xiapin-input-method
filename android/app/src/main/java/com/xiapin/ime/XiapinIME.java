@@ -396,14 +396,20 @@ if (btnTranslateSettings != null) {
         lastScheduledTranslateSrc = null;
     }
 
-    /** debounce：gtx 280ms / LLM 3s；組字中不計時；原文沒變不重計時 */
     private void scheduleTranslate(final String source) {
+        scheduleTranslate(source, false);
+    }
+
+    /**
+     * @param forceAfterCommit true=選字上屏後強制排程（此時 Rime preedit 可能尚未清）
+     */
+    private void scheduleTranslate(final String source, boolean forceAfterCommit) {
         if (!translateMode || source == null || source.trim().isEmpty()) return;
         if (translateInFlight) return; // 已在打 API
         final String src = source.trim();
 
-        // 還在組字 → 暫停計時（保留 lastScheduled 以便組字結束後重啟）
-        if (hasPreedit()) {
+        // 還在組字 → 暫停計時（選字上屏 force 時略過）
+        if (hasPreedit() && !forceAfterCommit) {
             if (pendingTranslate != null) {
                 translateHandler.removeCallbacks(pendingTranslate);
                 pendingTranslate = null;
@@ -442,6 +448,8 @@ if (btnTranslateSettings != null) {
             if (!src.equals(cur)) return;
             requestTranslateNow(src);
         };
+        android.util.Log.i("XiapinIME", "scheduleTranslate src=[" + src + "] delay=" + delayMs
+                + " force=" + forceAfterCommit + " preedit=" + hasPreedit());
         translateHandler.postDelayed(pendingTranslate, delayMs);
         updateTranslateUi();
         boolean needNew = lastTranslatedSource == null || !src.equals(lastTranslatedSource.trim());
@@ -472,7 +480,8 @@ if (btnTranslateSettings != null) {
         }
         updateTranslateUi();
         if (!src.isEmpty()) {
-            scheduleTranslate(src);
+            // 上屏後強制排程（preedit 可能還在，不能被 hasPreedit 擋掉）
+            scheduleTranslate(src, true);
         }
     }
 
@@ -1245,8 +1254,12 @@ if (btnTranslateSettings != null) {
             clearAssociations();
         }
         updateLang();
-        if (candidateView != null) candidateView.update(rime.getContext());
-        if (inTranslate) updateTranslateUi();
+        if (candidateView != null && rime != null) candidateView.update(rime.getContext());
+        if (inTranslate) {
+            updateTranslateUi();
+            // 組字已 clearComposition，務必重啟 3 秒翻譯計時
+            maybeResumeTranslateAfterComposition();
+        }
     }
 
     /** 丟掉 Rime 緩衝的 commit，避免雙重上屏 */
@@ -1293,8 +1306,13 @@ if (btnTranslateSettings != null) {
 
     private void commitText(String text) {
         if (TextUtils.isEmpty(text)) return;
-        // 翻譯模式：累積原文並翻譯，原文會進 App；譯文需點選
+        // 翻譯模式：累積原文並翻譯；譯文需點選
         if (handleTranslateCommit(text)) {
+            // 清殘留組字，並確保翻譯計時有跑
+            if (rime != null) {
+                try { rime.clearComposition(); } catch (Exception ignored) {}
+            }
+            maybeResumeTranslateAfterComposition();
             return;
         }
         InputConnection ic = getCurrentInputConnection();
