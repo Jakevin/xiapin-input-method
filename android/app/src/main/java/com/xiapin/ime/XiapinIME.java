@@ -1272,6 +1272,17 @@ if (btnTranslateSettings != null) {
         return currentSchema == null || "xiapin".equals(currentSchema);
     }
 
+    /** 長按模式鍵：跳系統輸入法選擇器 */
+    public void showInputMethodPicker() {
+        try {
+            android.view.inputmethod.InputMethodManager imm =
+                    (android.view.inputmethod.InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+            if (imm != null) imm.showInputMethodPicker();
+        } catch (Exception e) {
+            android.util.Log.w("XiapinIME", "showInputMethodPicker failed", e);
+        }
+    }
+
     private void updateLang() {
         if (keyboardView == null) return;
         // 符號層不強制改 schema 對應鍵盤

@@ -1,7 +1,9 @@
-# 蝦拼 v0.3.5
+# 蝦拼 v0.3.6
 
-模式鍵標籤：`拼` → **`蝦`**
+## 長按模式鍵跳系統切換器
 
-輪流：`蝦 → 注 → 英`
+長按 `蝦 / 注 / 英` 鍵 → 呼出 Android 系統「選擇鍵盤」視窗。
 
-https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.3.5
+短按仍正常輪流。
+
+https://github.com/Jakevin/xiapin-input-method/releases/tag/v0.3.6

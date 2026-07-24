@@ -395,15 +395,20 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
     }
 
     private void onZhuyinLongPress() {
-        if (inputMode != MODE_ZHUYIN || service == null) return;
-        int code = pressCode;
-        String sec = secondaryLabel(code);
-        if (sec == null) return;
+        if (service == null) return;
         longPressFired = true;
-        // 輕微震動回饋（若裝置支援）
         try {
             performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS);
         } catch (Throwable ignored) {}
+
+        if (pressCode == -1) {
+            // 長按模式鍵 → 系統輸入法選擇器
+            service.showInputMethodPicker();
+            return;
+        }
+        if (inputMode != MODE_ZHUYIN) return;
+        String sec = secondaryLabel(pressCode);
+        if (sec == null) return;
         service.commitRaw(sec);
     }
 
@@ -468,8 +473,10 @@ public class XiapinKeyboardView extends KeyboardView implements KeyboardView.OnK
         pressCode = primaryCode;
         longPressFired = false;
         longPressHandler.removeCallbacks(longPressRunnable);
-        // 僅注音模式、有第二字元的鍵才長按
-        if (inputMode == MODE_ZHUYIN && secondaryLabel(primaryCode) != null) {
+        if (primaryCode == -1) {
+            // 模式鍵長按 → 系統切換器
+            longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_MS);
+        } else if (inputMode == MODE_ZHUYIN && secondaryLabel(primaryCode) != null) {
             longPressHandler.postDelayed(longPressRunnable, LONG_PRESS_MS);
         }
     }
