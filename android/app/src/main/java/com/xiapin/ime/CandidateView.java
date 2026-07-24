@@ -432,6 +432,22 @@ public class CandidateView extends FrameLayout {
         candidateRow.addView(cell);
     }
 
+
+    /** preedit 含注音符號 → 不是字根碼 */
+    private static boolean looksLikeZhuyin(String s) {
+        if (s == null || s.isEmpty()) return false;
+        for (int i = 0; i < s.length(); ) {
+            int cp = s.codePointAt(i);
+            if ((cp >= 0x3105 && cp <= 0x312F) || (cp >= 0x31A0 && cp <= 0x31BA)
+                    || cp == 0x02C7 || cp == 0x02CB || cp == 0x02CA || cp == 0x02D9
+                    || cp == 0x02C9) {
+                return true;
+            }
+            i += Character.charCount(cp);
+        }
+        return false;
+    }
+
     private static boolean isRootCode(String s) {
         if (s == null || s.isEmpty() || s.length() > 4) return false;
         for (int i = 0; i < s.length(); i++) {
