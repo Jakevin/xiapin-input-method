@@ -1,11 +1,11 @@
 # Rime schema (Android) — 注音（大千 only）
 # encoding: utf-8
-# 與蝦拼字根分開；使用預編 bopomofo prism + terra_pinyin。
+# 與蝦拼字根完全分開；prism 對齊 bopomofo_build。
 
 schema:
   schema_id: xiapin_zhuyin
   name: "蝦拼注音"
-  version: "0.3.0-android"
+  version: "0.3.1-android"
   author:
     - "蝦拼輸入法 project"
   description: |
@@ -36,15 +36,22 @@ engine:
     - uniquifier
 
 speller:
-  # 大千：字母 + 數字聲調 + ,.;/-
-  alphabet: "abcdefghijklmnopqrstuvwxyz0123456789,.;/-"
-  delimiter: " '"
-  # prism 已由 bopomofo_build 預編；此處不再重跑 algebra
+  # 與 bopomofo_build 一致（大千鍵位）
+  alphabet: "1qaz2wsxedcrfv5tgbyhnujm8ik,9ol.0p;/- 6347abcdefghijklmnopqrstuvwxyz"
+  initials: "1qaz2wsxedcrfv5tgbyhnujm8ik,9ol.0p;/-abcdefghijklmnopqrstuvwxyz"
+  finals: " 6347"
+  delimiter: "'"
+  # 若裝置尚無可用 prism，以 algebra 現算（與 bopomofo_build 相同）
+  algebra:
+    __patch:
+      - zhuyin:/pinyin_to_zhuyin
+      - zhuyin:/abbreviation
+      - zhuyin:/keymap_bopomofo
 
 translator:
   dictionary: terra_pinyin
   prism: bopomofo
-  enable_sentence: true
+  enable_sentence: false
   enable_user_dict: true
   enable_completion: true
   initial_quality: 1000
@@ -59,7 +66,6 @@ punctuator:
 
 key_binder:
   bindings:
-    # 組字中：, . - ; / 送給注音，不要翻頁
     - { when: composing, accept: comma, send: comma }
     - { when: composing, accept: period, send: period }
     - { when: composing, accept: minus, send: minus }
@@ -69,7 +75,6 @@ key_binder:
     - { when: has_menu, accept: bracketright, send: Page_Down }
     - { when: has_menu, accept: equal, send: Page_Down }
     - { when: has_menu, accept: space, send: space }
-    - { when: always, accept: Shift+space, select: xiapin }
 
 recognizer:
   import_preset: default

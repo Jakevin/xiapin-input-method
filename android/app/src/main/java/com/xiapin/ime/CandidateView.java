@@ -107,6 +107,8 @@ public class CandidateView extends FrameLayout {
         if (cands == null) cands = new ArrayList<>();
 
         boolean englishMode = service != null && service.isEnglishMode();
+        boolean rootMode = service != null && service.isRootMode();
+        boolean zhuyinMode = service != null && service.isZhuyinMode();
 
         if (englishMode) {
             List<RimeJNI.Candidate> filtered = new ArrayList<>();
@@ -128,12 +130,15 @@ public class CandidateView extends FrameLayout {
             }
             cands = filteredZh;
             extraRootText = null;
-            String norm = preedit.replace(" ", "").replace("'", "");
-            // 所有 1–4 碼嘸蝦米字根（一鍵 a–z 與 ma/ay/pns…）一律置頂
-            if (boshiamy != null && isRootCode(norm)) {
-                String root = boshiamy.rootForCode(norm);
-                if (root != null && isDisplayableCandidate(root)) {
-                    extraRootText = root;
+            // 字根置頂：只在「蝦」模式，注音/其他中文模式禁止
+            if (rootMode) {
+                String norm = preedit.replace(" ", "").replace("'", "");
+                // 注音符號 preedit 不當字根碼
+                if (boshiamy != null && isRootCode(norm) && !looksLikeZhuyin(norm)) {
+                    String root = boshiamy.rootForCode(norm);
+                    if (root != null && isDisplayableCandidate(root)) {
+                        extraRootText = root;
+                    }
                 }
             }
             if (service != null) service.setExtraRootCandidate(extraRootText);
@@ -397,7 +402,9 @@ public class CandidateView extends FrameLayout {
             cell.setBackground(bg);
         } else {
             String comment = null;
-            if (!englishMode && boshiamy != null) {
+            // 嘸蝦米字根註解：只在蝦模式顯示，注音模式不要出現 sao/gb…
+            boolean showRootComment = service != null && service.isRootMode() && !englishMode;
+            if (showRootComment && boshiamy != null) {
                 comment = boshiamy.commentFor(text);
             }
             if (comment != null && !comment.isEmpty()) {
