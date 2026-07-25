@@ -1,15 +1,15 @@
-# Rime schema (Android) — 蝦拼（字根 only）
+# Rime schema (Android) — 蝦拼（字根 + 拼音輔助）
 # encoding: utf-8
-# 與注音 / 英文分開，避免混打干擾。
+# 與注音 / 英文分開；拼音只是輔助，quality 較低。
 
 schema:
   schema_id: xiapin
   name: "蝦拼"
-  version: "0.3.0-android"
+  version: "0.3.2-android"
   author:
     - "蝦拼輸入法 project"
   description: |
-    嘸蝦米字根輸入（Android）。不混注音/拼音。
+    嘸蝦米字根為主，拼音為輔（Android）。
 
 switches:
   - name: ascii_mode
@@ -37,6 +37,7 @@ engine:
   translators:
     - punct_translator
     - table_translator
+    - script_translator@pinyin
   filters:
     - uniquifier
 
@@ -50,6 +51,17 @@ translator:
   enable_completion: true
   enable_user_dict: true
   initial_quality: 1000
+
+pinyin:
+  tag: abc
+  dictionary: luna_pinyin
+  enable_sentence: false
+  enable_user_dict: true
+  initial_quality: 80
+  preedit_format:
+    - xform/([nl])v/$1ü/
+    - xform/([nl])ue/$1üe/
+    - xform/([jqxy])v/$1u/
 
 menu:
   page_size: 9
