@@ -4,11 +4,12 @@
 schema:
   schema_id: xiapin
   name: "蝦拼"
-  version: "0.1.18"
+  version: "0.1.19"
   author:
     - "蝦拼輸入法 project"
   description: |
     Experimental Pinyin plus openxiami root schema.
+    v0.1.19: cap lua comment_cache so Squirrel does not slow down over time.
     v0.1.18: performance-oriented defaults for macOS Squirrel.
 
 switches:

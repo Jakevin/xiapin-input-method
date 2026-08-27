@@ -1,8 +1,10 @@
 local M = {}
 
 -- 效能：只對單字／雙字加字根；候選過多時只處理前 LIMIT 個
+-- comment_cache 跟著 Squirrel session 活，必須有上限，否則越用越慢
 local MAX_PHRASE_CHARS = 2
 local MAX_CANDS_PER_TICK = 24
+local MAX_CACHE = 2048
 
 local function script_dir()
   local source = debug.getinfo(1, "S").source or ""
@@ -135,13 +137,35 @@ function M.init(env)
 
   env.roots = roots
   env.comment_cache = {}
+  env.comment_cache_size = 0
   -- 可選：log 初始化規模（Squirrel 日誌）
   -- log.info(string.format("[boshiamy_comment] loaded %d root entries", total))
 end
 
+local function remember_comment(env, cache, text, comment)
+  if not comment then
+    return
+  end
+  if (env.comment_cache_size or 0) >= MAX_CACHE then
+    cache = {}
+    env.comment_cache = cache
+    env.comment_cache_size = 0
+  end
+  if cache[text] == nil then
+    cache[text] = comment
+    env.comment_cache_size = (env.comment_cache_size or 0) + 1
+  end
+  return cache
+end
+
 function M.func(input, env)
   local roots = env.roots or {}
-  local cache = env.comment_cache or {}
+  local cache = env.comment_cache
+  if not cache then
+    cache = {}
+    env.comment_cache = cache
+    env.comment_cache_size = 0
+  end
   local seen = 0
 
   for cand in input:iter() do
@@ -150,8 +174,8 @@ function M.func(input, env)
     if seen <= MAX_CANDS_PER_TICK and cand.text and cand.text ~= "" then
       local comment = cache[cand.text]
       if comment == nil then
-        comment = comment_for_text(cand.text, roots) or false
-        cache[cand.text] = comment
+        comment = comment_for_text(cand.text, roots)
+        cache = remember_comment(env, cache, cand.text, comment) or cache
       end
       if comment and comment ~= "" then
         local target = cand.get_genuine and cand:get_genuine() or cand
